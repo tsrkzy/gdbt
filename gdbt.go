@@ -1,9 +1,9 @@
 package main
 
 import (
-	"errors"
 	"flag"
-	""
+	"github.com/lepra-tsr/gdbt/util"
+	"github.com/lepra-tsr/gdbt/validator"
 )
 
 func main() {
@@ -16,24 +16,11 @@ func main() {
 	flag.Parse()
 	// fmt.Println(*showHelp)
 
+	// parse command
 	command := flag.Arg(0)
-	err := validateCommand(command)
+	err := validator.ValidateCommand(command)
 	if err != nil {
-		echo("error!")
-		report(err)
+		util.Echo("error!")
+		util.Report(err)
 	}
-}
-
-
-
-
-
-func validateCommand(commandStr string) error {
-	commandList := []string{"init", "channel", "list"}
-	i := strIndexOf(commandStr, commandList)
-	if i == -1 {
-		return errors.New("validation error: invalid command: \"" + commandStr + "\"")
-	}
-
-	return nil
 }

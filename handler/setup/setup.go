@@ -9,13 +9,12 @@ import (
 
 	"encoding/json"
 	"errors"
+	"github.com/lepra-tsr/gdbt/config"
 	"github.com/lepra-tsr/gdbt/util"
 	"golang.org/x/crypto/ssh/terminal"
 	"io/ioutil"
 	"net/http"
 	"os"
-	"os/user"
-	"path/filepath"
 	"syscall"
 )
 
@@ -25,10 +24,10 @@ type TokenResponse struct {
 
 func Handler() error {
 	fmt.Println("init handler.")
-	// mkdir -p ~/.idbt
-	// fopen("w", ~/.idbt/config)
-	// fopen("w", ~/.idbt/draft)
-	if err := checkConfigFileState(); err != nil {
+	// mkdir -p ~/.gdbt
+	// fopen("w", ~/.gdbt/config)
+	// fopen("w", ~/.gdbt/draft)
+	if err := config.CheckConfigFileState(); err != nil {
 		return err
 	}
 
@@ -39,7 +38,11 @@ func Handler() error {
 		return err
 	}
 	fmt.Println("get access token done.")
-	fmt.Println(token + " > ~/.idbt/config.json")
+
+	if err := saveToken(token); err != nil {
+		return err
+	}
+	fmt.Println(token + " > ~/.gdbt/config.json")
 
 	// fetch userInfo
 	// fetch organizationInfo
@@ -52,41 +55,6 @@ func Handler() error {
 	// write rooms
 
 	// wait for input room selection
-	return nil
-}
-
-func checkConfigFileState() error {
-
-	// mkdir -p ~/.idbt
-	user, _ := user.Current()
-	configFileDirName := ".idbt"
-	configFileName := "config.json"
-	draftFileName := "draft.md"
-	configPath, _ := filepath.Abs(filepath.Join(user.HomeDir, configFileDirName))
-	if err := os.Mkdir(configPath, 0774); err != nil {
-		fmt.Println("mkdir: ~/" + configFileDirName + " is already exist.")
-	}
-
-	// open ~/.idbt/config (+write mode)
-	configFilePath, _ := filepath.Abs(filepath.Join(user.HomeDir, configFileDirName, configFileName))
-	if file, err := os.OpenFile(configFilePath, os.O_RDWR, 0774); err != nil {
-		fmt.Println("cannot open: ~/" + configFilePath)
-		return err
-	} else {
-		fmt.Println("file status check ok: " + configFilePath)
-		file.Close()
-	}
-
-	// open ~/.idbt/draft (+write mode)
-	draftFilePath, _ := filepath.Abs(filepath.Join(user.HomeDir, configFileDirName, draftFileName))
-	if file, err := os.OpenFile(draftFilePath, os.O_RDWR, 0774); err != nil {
-		fmt.Println("cannot open: ~/" + draftFilePath)
-		return err
-	} else {
-		fmt.Println("file status check ok: " + draftFilePath)
-		file.Close()
-	}
-
 	return nil
 }
 
@@ -112,6 +80,10 @@ func authPrompt() (string, error) {
 	if token, err := fetchToken(email, password); err != nil {
 		return "", err
 	} else {
+		if err := config.WriteCredential(email, token); err != nil {
+			return "", err
+		}
+
 		return token, nil
 	}
 }
@@ -144,14 +116,10 @@ func askPassword() (string, error) {
 }
 
 func fetchToken(email string, password string) (string, error) {
-	// create json {grant_type, username,password}
-	// curl
 	em := util.StripNewLine(email)
 	pw := util.StripNewLine(password)
 	url := "https://idobata.io/oauth/token"
 	payload := fmt.Sprintf(`{"grant_type":"password","username":"%v","password":"%v"}`, em, pw)
-
-	// fmt.Println(payload)
 
 	res, err := http.Post(url, "application/json", bytes.NewBuffer([]byte(payload)))
 	if err != nil {
@@ -175,4 +143,9 @@ func fetchToken(email string, password string) (string, error) {
 	}
 
 	return out.AccessToken, nil
+}
+
+func saveToken(token string) error {
+
+	return nil
 }

@@ -7,15 +7,21 @@ import (
 	"bytes"
 	"fmt"
 
-	// "io/ioutil"
+	"encoding/json"
+	"errors"
+	"github.com/lepra-tsr/gdbt/util"
+	"golang.org/x/crypto/ssh/terminal"
+	"io/ioutil"
 	"net/http"
 	"os"
 	"os/user"
 	"path/filepath"
 	"syscall"
-
-	"golang.org/x/crypto/ssh/terminal"
 )
+
+type TokenResponse struct {
+	AccessToken string `json:"access_token"`
+}
 
 func Handler() error {
 	fmt.Println("init handler.")
@@ -28,9 +34,12 @@ func Handler() error {
 
 	// wait for input email and password
 	// fetch accesstoken
-	if err := authPrompt(); err != nil {
+	token, err := authPrompt()
+	if err != nil {
 		return err
 	}
+	fmt.Println("get access token done.")
+	fmt.Println(token + " > ~/.idbt/config.json")
 
 	// fetch userInfo
 	// fetch organizationInfo
@@ -81,33 +90,30 @@ func checkConfigFileState() error {
 	return nil
 }
 
-func authPrompt() error {
+func authPrompt() (string, error) {
 	var (
 		email    string
 		password string
 	)
 	if _email, err := askEmail(); err != nil {
-		return err
+		return "", err
 	} else {
 		email = _email
-		fmt.Println(email)
+		// fmt.Println("email: \"" + email + "\"")
 	}
 
 	if _password, err := askPassword(); err != nil {
-		return err
+		return "", err
 	} else {
 		password = _password
-		fmt.Println(password)
+		// fmt.Println("password: " + util.IntToStr(len(password)) + "chars.")
 	}
 
 	if token, err := fetchToken(email, password); err != nil {
-		return err
+		return "", err
 	} else {
-		fmt.Println(token)
-
+		return token, nil
 	}
-
-	return nil
 }
 
 func askEmail() (string, error) {
@@ -123,6 +129,14 @@ func askEmail() (string, error) {
 func askPassword() (string, error) {
 	fmt.Println("password: ")
 	if bytePassword, err := terminal.ReadPassword(int(syscall.Stdin)); err != nil {
+		// terminal.ReadPassword は、MINGW系(windows)のターミナルソフトで使用できない: ターミナルソフト側の問題らしい)
+		fmt.Println("* sorry, your shell CANNOT hide password :<")
+		buf := bufio.NewReader(os.Stdin)
+		if bytePassword, err := buf.ReadBytes('\n'); err != nil {
+			return "", err
+		} else {
+			return string(bytePassword), nil
+		}
 		return "", err
 	} else {
 		return string(bytePassword), nil
@@ -132,15 +146,33 @@ func askPassword() (string, error) {
 func fetchToken(email string, password string) (string, error) {
 	// create json {grant_type, username,password}
 	// curl
+	em := util.StripNewLine(email)
+	pw := util.StripNewLine(password)
 	url := "https://idobata.io/oauth/token"
-	payload := "{\"grant_type\":\"password\",\"username\":\"tsrmix@gmail.com\",\"password\":\"#xatm0920\"}"
+	payload := fmt.Sprintf(`{"grant_type":"password","username":"%v","password":"%v"}`, em, pw)
 
-	req, err := http.Post(url, "application/json", bytes.NewBuffer([]byte(payload)))
+	// fmt.Println(payload)
+
+	res, err := http.Post(url, "application/json", bytes.NewBuffer([]byte(payload)))
 	if err != nil {
 		fmt.Println(err)
 		return "", err
 	}
-	fmt.Println(req)
 
-	return "auth token", nil
+	if res.StatusCode != 200 {
+		return "", errors.New(res.Status)
+	}
+
+	body, err := ioutil.ReadAll(res.Body)
+	if err != nil {
+		fmt.Println(err)
+		return "", err
+	}
+
+	out := TokenResponse{}
+	if err := json.Unmarshal(body, &out); err != nil {
+		return "", err
+	}
+
+	return out.AccessToken, nil
 }

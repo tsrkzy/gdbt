@@ -3,6 +3,7 @@ package util
 import (
 	"fmt"
 	"strconv"
+	"regexp"
 )
 
 func IntToStr(n int) string {
@@ -25,4 +26,11 @@ func StrIndexOf(val string, arr []string) int {
 		}
 	}
 	return -1
+}
+
+func StripNewLine(val string) string {
+	re := regexp.MustCompile(`[\r\n]`)
+	out:= re.ReplaceAllString(val, "")
+
+	return out
 }

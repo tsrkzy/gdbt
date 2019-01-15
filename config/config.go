@@ -126,6 +126,6 @@ func ReadCredential() (string, string, error) {
 }
 
 func WriteChannels(channelList *[]Channel) error {
-	
+
 	return nil
 }

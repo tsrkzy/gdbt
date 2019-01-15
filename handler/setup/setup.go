@@ -34,17 +34,19 @@ func Handler() error {
 
 	// wait for input email and password
 	// fetch accesstoken
-	token, err := authPrompt()
+	_, err := authPrompt()
 	if err != nil {
 		return err
 	}
 	fmt.Println("get access token done.")
 
-	if err := saveToken(token); err != nil {
+	if _, err := callGetWithCredential("/users"); err != nil {
 		return err
 	}
-	fmt.Println(token + " > ~/.gdbt/config.json")
 
+	// if err := fetchChannelEntity(); err != nil {
+	// 	return err
+	// }
 	// fetch userInfo
 	// fetch organizationInfo
 	// fetch roomInfo
@@ -141,7 +143,75 @@ func fetchToken(email string, password string) (string, error) {
 	return out.AccessToken, nil
 }
 
-func saveToken(token string) error {
-
+func fetchChannelEntity() error {
+	url := "https://idobata.io/api/users"
+	res, err := http.Get(url)
+	if err != nil {
+		return err
+	}
+	defer res.Body.Close()
+	bytes, _ := ioutil.ReadAll(res.Body)
+	fmt.Println(string(bytes))
+	// payload :=
 	return nil
+}
+
+type UserResponseJson struct {
+	Memberships []Membership `json:"memberships"`
+	Joins       []Join       `json:"joins"`
+	Users       []User       `json:"users"`
+}
+
+type Membership struct {
+	Id             int    `json:"id"`
+	Role           string `json:"role"`
+	OrganizationId int    `json:"organization_id"`
+	GuyId          int    `json:"guy_id"`
+}
+
+type Join struct {
+	Id     int `json:"id"`
+	RoomId int `json:"room_id"`
+	GuyId  int `json:"guy_id"`
+}
+
+type User struct {
+	Id               int    `json:"id"`
+	Name             string `json:"name"`
+	IconUrl          string `json:"icon_url"`
+	Status           string `json:"status"`
+	Links            *Link  `json:"links"`
+	MembershipIdList []int  `json:"membership_ids"`
+}
+
+type Link struct {
+	Stars string `json:"stars"`
+}
+
+func callGetWithCredential(path string) (string, error) {
+	_, token, err := config.ReadCredential()
+	if err != nil {
+		return "", err
+	}
+
+	url := "https://idobata.io/api" + path
+	req, err := http.NewRequest("GET", url, nil)
+	req.Header.Set("X-API-Token", token)
+	req.Header.Set("User-Agent", "idbt")
+
+	client := new(http.Client)
+	res, err := client.Do(req)
+	if err != nil {
+		return "", err
+	}
+	defer res.Body.Close()
+	bytes, _ := ioutil.ReadAll(res.Body)
+
+	userResponseJson := UserResponseJson{}
+	if err := json.Unmarshal(bytes, &userResponseJson); err != nil {
+		return "", err
+	}
+
+	fmt.Println(userResponseJson.Memberships[0])
+	return "", nil
 }

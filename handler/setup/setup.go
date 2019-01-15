@@ -116,7 +116,7 @@ func askPassword() (string, error) {
 func fetchToken(email string, password string) (string, error) {
 	url := "https://idobata.io/oauth/token"
 	payload := fmt.Sprintf(`{"grant_type":"password","username":"%v","password":"%v"}`, email, password)
-
+	// fmt.Println(payload)
 	res, err := http.Post(url, "application/json", bytes.NewBuffer([]byte(payload)))
 	if err != nil {
 		fmt.Println(err)

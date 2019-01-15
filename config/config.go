@@ -1,11 +1,29 @@
 package config
 
 import (
+	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"os"
 	"os/user"
 	"path/filepath"
 )
+
+type CredentialJson struct {
+	UserName string `json:"username"`
+	Token    string `json:"token"`
+}
+
+type Channels struct {
+	List []Channel `json:"list"`
+}
+
+type Channel struct {
+	id               int
+	name             string
+	messageUrl       string
+	organizationName string
+}
 
 const (
 	configFileDirName  = ".gdbt"
@@ -88,21 +106,26 @@ func WriteCredential(username string, token string) error {
 		return err
 	} else {
 		defer file.Close()
-		jsonStr := fmt.Sprintf(`{"username":"%v","token","%v"}`, username, token)
+		jsonStr := fmt.Sprintf(`{"username":"%v","token":"%v"}`, username, token)
 		fmt.Fprintln(file, jsonStr)
 		return nil
 	}
 }
 
 func ReadCredential() (string, string, error) {
-	if file, err := os.Open(CredentialJsonPath); err != nil {
+	if bytes, err := ioutil.ReadFile(CredentialJsonPath); err != nil {
 		return "", "", err
+	} else {
+		credentialJson := CredentialJson{}
+		if err := json.Unmarshal(bytes, &credentialJson); err != nil {
+			return "", "", err
+		}
+
+		return credentialJson.UserName, credentialJson.Token, nil
 	}
-	defer file.Close()
-	
-	return "", "", nil
 }
 
-func WriteChannels() error {
+func WriteChannels(channelList *[]Channel) error {
+	
 	return nil
 }

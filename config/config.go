@@ -84,15 +84,23 @@ func OpenOrCreateFileWithWriteMode(path string) error {
 }
 
 func WriteCredential(username string, token string) error {
-if file, err := os.OpenFile(CredentialJsonPath, os.O_RDWR, 0774); err != nil{
-	return err
-} else{
-	defer file.Close()
-
-	return nil
+	if file, err := os.OpenFile(CredentialJsonPath, os.O_RDWR, 0774); err != nil {
+		return err
+	} else {
+		defer file.Close()
+		jsonStr := fmt.Sprintf(`{"username":"%v","token","%v"}`, username, token)
+		fmt.Fprintln(file, jsonStr)
+		return nil
+	}
 }
 
-
+func ReadCredential() (string, string, error) {
+	if file, err := os.Open(CredentialJsonPath); err != nil {
+		return "", "", err
+	}
+	defer file.Close()
+	
+	return "", "", nil
 }
 
 func WriteChannels() error {

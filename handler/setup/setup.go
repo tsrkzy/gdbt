@@ -9,13 +9,14 @@ import (
 
 	"encoding/json"
 	"errors"
-	"github.com/lepra-tsr/gdbt/config"
-	"github.com/lepra-tsr/gdbt/util"
-	"golang.org/x/crypto/ssh/terminal"
 	"io/ioutil"
 	"net/http"
 	"os"
 	"syscall"
+
+	"github.com/lepra-tsr/gdbt/config"
+	"github.com/lepra-tsr/gdbt/util"
+	"golang.org/x/crypto/ssh/terminal"
 )
 
 type TokenResponse struct {
@@ -67,14 +68,12 @@ func authPrompt() (string, error) {
 		return "", err
 	} else {
 		email = _email
-		// fmt.Println("email: \"" + email + "\"")
 	}
 
 	if _password, err := askPassword(); err != nil {
 		return "", err
 	} else {
 		password = _password
-		// fmt.Println("password: " + util.IntToStr(len(password)) + "chars.")
 	}
 
 	if token, err := fetchToken(email, password); err != nil {
@@ -94,7 +93,7 @@ func askEmail() (string, error) {
 	if email, err := buf.ReadBytes('\n'); err != nil {
 		return "", err
 	} else {
-		return string(email), nil
+		return util.StripNewLine(string(email)), nil
 	}
 }
 
@@ -107,19 +106,16 @@ func askPassword() (string, error) {
 		if bytePassword, err := buf.ReadBytes('\n'); err != nil {
 			return "", err
 		} else {
-			return string(bytePassword), nil
+			return util.StripNewLine(string(bytePassword)), nil
 		}
-		return "", err
 	} else {
-		return string(bytePassword), nil
+		return util.StripNewLine(string(bytePassword)), nil
 	}
 }
 
 func fetchToken(email string, password string) (string, error) {
-	em := util.StripNewLine(email)
-	pw := util.StripNewLine(password)
 	url := "https://idobata.io/oauth/token"
-	payload := fmt.Sprintf(`{"grant_type":"password","username":"%v","password":"%v"}`, em, pw)
+	payload := fmt.Sprintf(`{"grant_type":"password","username":"%v","password":"%v"}`, email, password)
 
 	res, err := http.Post(url, "application/json", bytes.NewBuffer([]byte(payload)))
 	if err != nil {

@@ -3,20 +3,15 @@ package setup
 // init は予約語なので避けた
 
 import (
-	"bufio"
 	"bytes"
-	"fmt"
-
 	"encoding/json"
 	"errors"
+	"fmt"
+	. "github.com/lepra-tsr/gdbt/api/user"
+	"github.com/lepra-tsr/gdbt/config"
+	"github.com/lepra-tsr/gdbt/prompt/auth"
 	"io/ioutil"
 	"net/http"
-	"os"
-	"syscall"
-
-	"github.com/lepra-tsr/gdbt/config"
-	"github.com/lepra-tsr/gdbt/util"
-	"golang.org/x/crypto/ssh/terminal"
 )
 
 type TokenResponse struct {
@@ -34,15 +29,18 @@ func Handler() error {
 
 	// wait for input email and password
 	// fetch accesstoken
-	_, err := authPrompt()
+	_, err := startAuthPrompt()
 	if err != nil {
 		return err
 	}
 	fmt.Println("get access token done.")
 
-	if _, err := callGetWithCredential("/users"); err != nil {
+	userJson := UserJson{}
+	if err := userJson.Fetch(); err != nil {
 		return err
 	}
+
+	fmt.Println(userJson.Users[0])
 
 	// if err := fetchChannelEntity(); err != nil {
 	// 	return err
@@ -61,18 +59,18 @@ func Handler() error {
 	return nil
 }
 
-func authPrompt() (string, error) {
+func startAuthPrompt() (string, error) {
 	var (
 		email    string
 		password string
 	)
-	if _email, err := askEmail(); err != nil {
+	if _email, err := authPrompt.AskEmail(); err != nil {
 		return "", err
 	} else {
 		email = _email
 	}
 
-	if _password, err := askPassword(); err != nil {
+	if _password, err := authPrompt.AskPassword(); err != nil {
 		return "", err
 	} else {
 		password = _password
@@ -86,32 +84,6 @@ func authPrompt() (string, error) {
 		}
 
 		return token, nil
-	}
-}
-
-func askEmail() (string, error) {
-	fmt.Println("e-mail: ")
-	buf := bufio.NewReader(os.Stdin)
-	if email, err := buf.ReadBytes('\n'); err != nil {
-		return "", err
-	} else {
-		return util.StripNewLine(string(email)), nil
-	}
-}
-
-func askPassword() (string, error) {
-	fmt.Println("password: ")
-	if bytePassword, err := terminal.ReadPassword(int(syscall.Stdin)); err != nil {
-		// terminal.ReadPassword は、MINGW系(windows)のターミナルソフトで使用できない: ターミナルソフト側の問題らしい)
-		fmt.Println("* sorry, your shell CANNOT hide password :<")
-		buf := bufio.NewReader(os.Stdin)
-		if bytePassword, err := buf.ReadBytes('\n'); err != nil {
-			return "", err
-		} else {
-			return util.StripNewLine(string(bytePassword)), nil
-		}
-	} else {
-		return util.StripNewLine(string(bytePassword)), nil
 	}
 }
 
@@ -154,64 +126,4 @@ func fetchChannelEntity() error {
 	fmt.Println(string(bytes))
 	// payload :=
 	return nil
-}
-
-type UserResponseJson struct {
-	Memberships []Membership `json:"memberships"`
-	Joins       []Join       `json:"joins"`
-	Users       []User       `json:"users"`
-}
-
-type Membership struct {
-	Id             int    `json:"id"`
-	Role           string `json:"role"`
-	OrganizationId int    `json:"organization_id"`
-	GuyId          int    `json:"guy_id"`
-}
-
-type Join struct {
-	Id     int `json:"id"`
-	RoomId int `json:"room_id"`
-	GuyId  int `json:"guy_id"`
-}
-
-type User struct {
-	Id               int    `json:"id"`
-	Name             string `json:"name"`
-	IconUrl          string `json:"icon_url"`
-	Status           string `json:"status"`
-	Links            *Link  `json:"links"`
-	MembershipIdList []int  `json:"membership_ids"`
-}
-
-type Link struct {
-	Stars string `json:"stars"`
-}
-
-func callGetWithCredential(path string) (string, error) {
-	_, token, err := config.ReadCredential()
-	if err != nil {
-		return "", err
-	}
-
-	url := "https://idobata.io/api" + path
-	req, err := http.NewRequest("GET", url, nil)
-	req.Header.Set("X-API-Token", token)
-	req.Header.Set("User-Agent", "idbt")
-
-	client := new(http.Client)
-	res, err := client.Do(req)
-	if err != nil {
-		return "", err
-	}
-	defer res.Body.Close()
-	bytes, _ := ioutil.ReadAll(res.Body)
-
-	userResponseJson := UserResponseJson{}
-	if err := json.Unmarshal(bytes, &userResponseJson); err != nil {
-		return "", err
-	}
-
-	fmt.Println(userResponseJson.Memberships[0])
-	return "", nil
 }

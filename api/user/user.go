@@ -4,9 +4,9 @@ import "github.com/lepra-tsr/gdbt/api"
 import "encoding/json"
 
 type UserJson struct {
-	Memberships []Membership `json:"memberships"`
-	Joins       []Join       `json:"joins"`
-	Users       []User       `json:"users"`
+	Memberships []api.Membership `json:"memberships"`
+	Joins       []api.Join       `json:"joins"`
+	Users       []api.User       `json:"users"`
 }
 
 func (u *UserJson) Fetch() error {
@@ -20,30 +20,4 @@ func (u *UserJson) Fetch() error {
 	}
 
 	return nil
-}
-
-type Membership struct {
-	Id             int    `json:"id"`
-	Role           string `json:"role"`
-	OrganizationId int    `json:"organization_id"`
-	GuyId          int    `json:"guy_id"`
-}
-
-type Join struct {
-	Id     int `json:"id"`
-	RoomId int `json:"room_id"`
-	GuyId  int `json:"guy_id"`
-}
-
-type User struct {
-	Id               int    `json:"id"`
-	Name             string `json:"name"`
-	IconUrl          string `json:"icon_url"`
-	Status           string `json:"status"`
-	Links            *Link  `json:"links"`
-	MembershipIdList []int  `json:"membership_ids"`
-}
-
-type Link struct {
-	Stars string `json:"stars"`
 }

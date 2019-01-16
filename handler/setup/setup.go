@@ -6,6 +6,8 @@ import (
 	"fmt"
 	. "github.com/lepra-tsr/gdbt/api/token"
 	. "github.com/lepra-tsr/gdbt/api/user"
+	. "github.com/lepra-tsr/gdbt/api/organization"
+	. "github.com/lepra-tsr/gdbt/api/room"
 	"github.com/lepra-tsr/gdbt/config"
 	"github.com/lepra-tsr/gdbt/prompt/auth"
 )
@@ -21,25 +23,28 @@ func Handler() error {
 
 	// wait for input email and password
 	// fetch accesstoken
-	_, err := startAuthPrompt()
-	if err != nil {
-		return err
-	}
-	fmt.Println("get access token done.")
+
+	// _, err := startAuthPrompt()
+	// if err != nil {
+	// 	return err
+	// }
 
 	userJson := UserJson{}
 	if err := userJson.Fetch(); err != nil {
 		return err
 	}
 
-	fmt.Println(userJson.Users[0])
+	organizationJson := OrganizationJson{}
+	if err := organizationJson.Fetch(); err != nil {
+		return err
+	}
 
-	// if err := fetchChannelEntity(); err != nil {
-	// 	return err
-	// }
-	// fetch userInfo
-	// fetch organizationInfo
-	// fetch roomInfo
+	roomJson := RoomJson{}
+	if err := roomJson.Fetch(); err != nil {
+		return err
+	}
+
+	fmt.Println(roomJson.Rooms[0])
 
 	// write userName
 	// write accessToken
@@ -48,6 +53,7 @@ func Handler() error {
 	// write rooms
 
 	// wait for input room selection
+
 	return nil
 }
 
@@ -79,14 +85,4 @@ func startAuthPrompt() (string, error) {
 	}
 
 	return token, nil
-
-	// if token, err := fetchToken(email, password); err != nil {
-	// 	return "", err
-	// } else {
-	// 	if err := config.WriteCredential(email, token); err != nil {
-	// 		return "", err
-	// 	}
-
-	// 	return token, nil
-	// }
 }

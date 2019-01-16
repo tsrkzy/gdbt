@@ -14,17 +14,6 @@ type CredentialJson struct {
 	Token    string `json:"token"`
 }
 
-type Channels struct {
-	List []Channel `json:"list"`
-}
-
-type Channel struct {
-	id               int
-	name             string
-	messageUrl       string
-	organizationName string
-}
-
 const (
 	configFileDirName  = ".gdbt"
 	credentialJsonName = "credential.json"
@@ -123,9 +112,4 @@ func ReadCredential() (string, string, error) {
 
 		return credentialJson.UserName, credentialJson.Token, nil
 	}
-}
-
-func WriteChannels(channelList *[]Channel) error {
-
-	return nil
 }

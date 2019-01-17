@@ -2,6 +2,7 @@ package list
 
 import (
 	"errors"
+
 	"github.com/lepra-tsr/gdbt/api/message"
 	. "github.com/lepra-tsr/gdbt/config/room"
 	. "github.com/lepra-tsr/gdbt/renderer/message"
@@ -24,6 +25,9 @@ func Handler() error {
 
 	messageRenderer := MessageRenderer{}
 	messageRenderer.ParseMessageJson(&messageJson)
+
+	// fmt.Println(messageRenderer)
+	messageRenderer.Show()
 
 	return nil
 }

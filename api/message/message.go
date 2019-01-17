@@ -13,14 +13,16 @@ type MessageJson struct {
 }
 
 type Message struct {
-	Id            int    `json:"id"`
-	SenderName    string `json:"sender_name"`
-	SenderIconUrl string `json:"sender_icon_url"`
-	CreatedAt     string `json:"created_at"`
-	Body          string `json:"body"`
-	SenderId      int    `json:"sender_id"`
-	SenderType    string `json:"sender_type"`
-	RoomId        int    `json:"room_id"`
+	Id                 int      `json:"id"`
+	SenderName         string   `json:"sender_name"`
+	SenderIconUrl      string   `json:"sender_icon_url"`
+	CreatedAt          string   `json:"created_at"`
+	Body               string   `json:"body"`
+	SenderId           int      `json:"sender_id"`
+	SenderType         string   `json:"sender_type"`
+	RoomId             int      `json:"room_id"`
+	AttachImageUrlList []string `json:"image_urls"`
+	AttachFileUrlList  []string `json:"file_urls"`
 }
 
 type Meta struct {

@@ -3,6 +3,7 @@ package api
 import (
 	"io/ioutil"
 	"net/http"
+	"strings"
 
 	. "github.com/lepra-tsr/gdbt/config/credential"
 )
@@ -80,8 +81,12 @@ func CallGetWithCredential(path string) ([]byte, error) {
 		return nil, err
 	}
 	token := credential.Token
-
-	url := "https://idobata.io/api" + path
+	var url string
+	if strings.Index(path, "http") != -1 {
+		url = path
+	} else {
+		url = "https://idobata.io/api" + path
+	}
 	req, err := http.NewRequest("GET", url, nil)
 	req.Header.Set("X-API-Token", token)
 	req.Header.Set("User-Agent", "idbt")

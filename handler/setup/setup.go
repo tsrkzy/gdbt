@@ -25,19 +25,13 @@ func Handler() error {
 		return err
 	}
 
-	if err := writeChannel(); err != nil {
+	fmt.Println("fetching room infomation...")
+	if err := writeRoom(); err != nil {
 		return err
 	}
+	fmt.Println("stored your room infomation completely.")
+	fmt.Println("next, hit \"$ gdbt room\" to select room.")
 
-	// wait for input room selection
-	if err := roomSelectPrompt(); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func roomSelectPrompt() error {
 	return nil
 }
 
@@ -69,9 +63,8 @@ func writeCredential() error {
 	return nil
 }
 
-func writeChannel() error {
+func writeRoom() error {
 
-	fmt.Println("fetching room infomation...")
 	userJson := UserJson{}
 	if err := userJson.Fetch(); err != nil {
 		return err
@@ -81,7 +74,7 @@ func writeChannel() error {
 	if err := organizationJson.Fetch(); err != nil {
 		return err
 	}
-
+	
 	roomJson := RoomJson{}
 	if err := roomJson.Fetch(); err != nil {
 		return err
@@ -90,7 +83,6 @@ func writeChannel() error {
 	roomConfigJson := RoomConfigJson{}
 	roomConfigJson.ParseServerEntity(&userJson, &organizationJson, &roomJson)
 	roomConfigJson.Write()
-	fmt.Println("stored your room infomation completely.")
 
 	return nil
 }

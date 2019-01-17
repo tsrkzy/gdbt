@@ -13,7 +13,7 @@ import (
 	. "github.com/lepra-tsr/gdbt/config"
 )
 
-type ConfigJson struct {
+type RoomConfigJson struct {
 	Id          int        `json:"id"`
 	Name        string     `json:"name"`
 	IconUrl     string     `json:"iconUrl"`
@@ -21,7 +21,7 @@ type ConfigJson struct {
 	Rooms       []RoomInfo `json:"rooms"`
 }
 
-func (u *ConfigJson) ParseServerEntity(
+func (u *RoomConfigJson) ParseServerEntity(
 	userJson *UserJson,
 	orgJson *OrganizationJson,
 	roomJson *RoomJson) error {
@@ -111,7 +111,7 @@ type OrganizationInfo struct {
 	Slug string `json:"slug"`
 }
 
-func (u *ConfigJson) Write() error {
+func (u *RoomConfigJson) Write() error {
 	file, err := os.OpenFile(
 		RoomJsonPath,
 		os.O_WRONLY|os.O_TRUNC|os.O_CREATE,
@@ -126,7 +126,7 @@ func (u *ConfigJson) Write() error {
 	return nil
 }
 
-func (u *ConfigJson) Read() error {
+func (u *RoomConfigJson) Read() error {
 	if bytes, err := ioutil.ReadFile(CredentialJsonPath); err != nil {
 		return err
 	} else {

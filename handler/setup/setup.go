@@ -10,8 +10,8 @@ import (
 	. "github.com/lepra-tsr/gdbt/api/token"
 	. "github.com/lepra-tsr/gdbt/api/user"
 	"github.com/lepra-tsr/gdbt/config"
-	. "github.com/lepra-tsr/gdbt/config/room"
 	. "github.com/lepra-tsr/gdbt/config/credential"
+	. "github.com/lepra-tsr/gdbt/config/room"
 	authPrompt "github.com/lepra-tsr/gdbt/prompt/auth"
 )
 
@@ -28,12 +28,16 @@ func Handler() error {
 	if err := writeChannel(); err != nil {
 		return err
 	}
-	// write user
-	// write organizations
-	// write rooms
 
 	// wait for input room selection
+	if err := roomSelectPrompt(); err != nil {
+		return err
+	}
 
+	return nil
+}
+
+func roomSelectPrompt() error {
 	return nil
 }
 
@@ -80,9 +84,9 @@ func writeChannel() error {
 		return err
 	}
 
-	configJson := ConfigJson{}
-	configJson.ParseServerEntity(&userJson, &organizationJson, &roomJson)
-	configJson.Write()
+	roomConfigJson := RoomConfigJson{}
+	roomConfigJson.ParseServerEntity(&userJson, &organizationJson, &roomJson)
+	roomConfigJson.Write()
 
 	return nil
 }

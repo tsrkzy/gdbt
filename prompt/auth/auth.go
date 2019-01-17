@@ -3,34 +3,44 @@ package authPrompt
 import (
 	"bufio"
 	"fmt"
-	"github.com/lepra-tsr/gdbt/util"
-	"golang.org/x/crypto/ssh/terminal"
 	"os"
 	"syscall"
+
+	"github.com/lepra-tsr/gdbt/util"
+	"golang.org/x/crypto/ssh/terminal"
 )
 
-func AskEmail() (string, error) {
-	fmt.Println("e-mail: ")
-	buf := bufio.NewReader(os.Stdin)
-	if email, err := buf.ReadBytes('\n'); err != nil {
-		return "", err
-	} else {
-		return util.StripNewLine(string(email)), nil
-	}
+type Auth struct {
+	Email    string
+	Password string
 }
 
-func AskPassword() (string, error) {
+func (u *Auth) AskEmail() error {
+	fmt.Println("e-mail: ")
+	buf := bufio.NewReader(os.Stdin)
+	bytes, err := buf.ReadBytes('\n')
+	if err != nil {
+		return err
+	}
+	u.Email = util.StripNewLine(string(bytes))
+
+	return nil
+}
+
+func (u *Auth) AskPassword() error {
 	fmt.Println("password: ")
-	if bytePassword, err := terminal.ReadPassword(int(syscall.Stdin)); err != nil {
+	bytePassword, err := terminal.ReadPassword(int(syscall.Stdin))
+	if err != nil {
 		// terminal.ReadPassword は、MINGW系(windows)のターミナルソフトで使用できない: ターミナルソフト側の問題らしい)
 		fmt.Println("* sorry, your shell CANNOT hide password :<")
 		buf := bufio.NewReader(os.Stdin)
-		if bytePassword, err := buf.ReadBytes('\n'); err != nil {
-			return "", err
-		} else {
-			return util.StripNewLine(string(bytePassword)), nil
+		bytePassword, err := buf.ReadBytes('\n')
+		if err != nil {
+			return err
 		}
-	} else {
-		return util.StripNewLine(string(bytePassword)), nil
+		u.Password = util.StripNewLine(string(bytePassword))
+		return nil
 	}
+	u.Password = util.StripNewLine(string(bytePassword))
+	return nil
 }

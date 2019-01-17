@@ -2,6 +2,7 @@ package room
 
 import (
 	"encoding/json"
+
 	"github.com/lepra-tsr/gdbt/api"
 )
 

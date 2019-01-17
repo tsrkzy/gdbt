@@ -1,9 +1,10 @@
 package api
 
 import (
-	"github.com/lepra-tsr/gdbt/config"
 	"io/ioutil"
 	"net/http"
+
+	. "github.com/lepra-tsr/gdbt/config/credential"
 )
 
 type Membership struct {
@@ -20,12 +21,21 @@ type Join struct {
 }
 
 type User struct {
-	Id               int       `json:"id"`
-	Name             string    `json:"name"`
-	IconUrl          string    `json:"icon_url"`
-	Status           string    `json:"status"`
-	Links            *UserLink `json:"links"`
-	MembershipIdList []int     `json:"membership_ids"`
+	Id                       int       `json:"id"`
+	Name                     string    `json:"name"`
+	IconUrl                  string    `json:"icon_url"`
+	Status                   string    `json:"status"`
+	Email                    string    `json:"email"`
+	ChannelName              string    `json:"channel_name"`
+	CreatedAt                string    `json:"created_at"`
+	EnterBehaviorDesktop     string    `json:"enter_behavior_desktop"`
+	EnterBehaviorMobile      string    `json:"enter_behavior_mobile"`
+	UseMarkdown              bool      `json:"use_markdown"`
+	MessageFoldable          bool      `json:"message_foldable"`
+	ReceiveBroadcastMentions bool      `json:"receive_broadcast_mentions"`
+	Links                    *UserLink `json:"links"`
+	MembershipIdList         []int     `json:"membership_ids"`
+	JoinIdList               []int     `json:"join_ids"`
 }
 
 type UserLink struct {
@@ -65,10 +75,11 @@ type RoomLink struct {
 }
 
 func CallGetWithCredential(path string) ([]byte, error) {
-	_, token, err := config.ReadCredential()
-	if err != nil {
+	credential := CredentialJson{}
+	if err := credential.Read(); err != nil {
 		return nil, err
 	}
+	token := credential.Token
 
 	url := "https://idobata.io/api" + path
 	req, err := http.NewRequest("GET", url, nil)
@@ -81,7 +92,11 @@ func CallGetWithCredential(path string) ([]byte, error) {
 		return nil, err
 	}
 	defer res.Body.Close()
-	bytes, _ := ioutil.ReadAll(res.Body)
+
+	bytes, err := ioutil.ReadAll(res.Body)
+	if err != nil {
+		return nil, err
+	}
 
 	return bytes, nil
 }

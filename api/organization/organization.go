@@ -2,6 +2,7 @@ package organization
 
 import (
 	"encoding/json"
+
 	"github.com/lepra-tsr/gdbt/api"
 )
 

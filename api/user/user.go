@@ -1,7 +1,10 @@
 package user
 
-import "github.com/lepra-tsr/gdbt/api"
-import "encoding/json"
+import (
+	"encoding/json"
+
+	"github.com/lepra-tsr/gdbt/api"
+)
 
 type UserJson struct {
 	Memberships []api.Membership `json:"memberships"`
@@ -14,6 +17,8 @@ func (u *UserJson) Fetch() error {
 	if err != nil {
 		return err
 	}
+
+	// fmt.Println(string(bytes))
 
 	if err := json.Unmarshal(bytes, &u); err != nil {
 		return err

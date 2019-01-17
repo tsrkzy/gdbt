@@ -1,18 +1,11 @@
 package config
 
 import (
-	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"os/user"
 	"path/filepath"
 )
-
-type CredentialJson struct {
-	UserName string `json:"username"`
-	Token    string `json:"token"`
-}
 
 const (
 	configFileDirName  = ".gdbt"
@@ -88,28 +81,4 @@ func OpenOrCreateFileWithWriteMode(path string) error {
 	}
 
 	return nil
-}
-
-func WriteCredential(username string, token string) error {
-	if file, err := os.OpenFile(CredentialJsonPath, os.O_RDWR, 0774); err != nil {
-		return err
-	} else {
-		defer file.Close()
-		jsonStr := fmt.Sprintf(`{"username":"%v","token":"%v"}`, username, token)
-		fmt.Fprintln(file, jsonStr)
-		return nil
-	}
-}
-
-func ReadCredential() (string, string, error) {
-	if bytes, err := ioutil.ReadFile(CredentialJsonPath); err != nil {
-		return "", "", err
-	} else {
-		credentialJson := CredentialJson{}
-		if err := json.Unmarshal(bytes, &credentialJson); err != nil {
-			return "", "", err
-		}
-
-		return credentialJson.UserName, credentialJson.Token, nil
-	}
 }

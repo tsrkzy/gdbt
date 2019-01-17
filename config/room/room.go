@@ -2,6 +2,7 @@ package room
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -11,6 +12,7 @@ import (
 	. "github.com/lepra-tsr/gdbt/api/room"
 	. "github.com/lepra-tsr/gdbt/api/user"
 	. "github.com/lepra-tsr/gdbt/config"
+	"github.com/lepra-tsr/gdbt/util"
 )
 
 type RoomConfigJson struct {
@@ -85,11 +87,40 @@ func (u *RoomConfigJson) ParseServerEntity(
 	return nil
 }
 
+func (u *RoomConfigJson) GetCurrentConnectedName() string {
+	if u.CurrentRoom == nil {
+		return "<nil>"
+	}
+	connectedName := u.CurrentRoom.GetConnectedName()
+	return connectedName
+}
+
+func (u *RoomConfigJson) SetCurrentById(roomId string) error {
+	rooms := u.Rooms
+	for i := 0; i < len(rooms); i++ {
+		room := rooms[i]
+		id := util.IntToStr(room.Id)
+		if id != roomId {
+			continue
+		}
+		u.CurrentRoom = &u.Rooms[i]
+		return nil
+	}
+	return errors.New("room with id=" + roomId + " has not found.")
+}
+
 type RoomInfo struct {
 	Id           int               `json:"id"`
 	Name         string            `json:"name"`
 	MessageUrl   string            `json:"messageUrl"`
 	Organization *OrganizationInfo `json:"organization"`
+}
+
+func (u *RoomInfo) GetConnectedName() string {
+	orgSlug := u.Organization.Slug
+	roomName := u.Name
+	connectedName := "" + orgSlug + " > " + roomName
+	return connectedName
 }
 
 func (u *RoomInfo) ParseRoomOrganization(room *Room, org *Organization) error {
@@ -127,13 +158,13 @@ func (u *RoomConfigJson) Write() error {
 }
 
 func (u *RoomConfigJson) Read() error {
-	if bytes, err := ioutil.ReadFile(CredentialJsonPath); err != nil {
+	bytes, err := ioutil.ReadFile(RoomJsonPath)
+	if err != nil {
 		return err
-	} else {
-		if err := json.Unmarshal(bytes, &u); err != nil {
-			fmt.Println("Failed to parse credential.json")
-			return err
-		}
-		return nil
 	}
+	if err := json.Unmarshal(bytes, &u); err != nil {
+		fmt.Println("Failed to parse room.json")
+		return err
+	}
+	return nil
 }

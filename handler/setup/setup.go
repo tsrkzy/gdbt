@@ -56,7 +56,7 @@ func writeCredential() error {
 	if err := tokenResponse.Fetch(email, password); err != nil {
 		return err
 	}
-
+	
 	token := tokenResponse.AccessToken
 	credential := CredentialJson{}
 	credential.Token = token
@@ -64,16 +64,19 @@ func writeCredential() error {
 	if err := credential.Write(); err != nil {
 		return err
 	}
+	fmt.Println("authorization succeeded.")
+
 	return nil
 }
 
 func writeChannel() error {
 
+	fmt.Println("fetching room infomation...")
 	userJson := UserJson{}
 	if err := userJson.Fetch(); err != nil {
 		return err
 	}
-
+	
 	organizationJson := OrganizationJson{}
 	if err := organizationJson.Fetch(); err != nil {
 		return err
@@ -83,10 +86,11 @@ func writeChannel() error {
 	if err := roomJson.Fetch(); err != nil {
 		return err
 	}
-
+	
 	roomConfigJson := RoomConfigJson{}
 	roomConfigJson.ParseServerEntity(&userJson, &organizationJson, &roomJson)
 	roomConfigJson.Write()
+	fmt.Println("stored your room infomation completely.")
 
 	return nil
 }

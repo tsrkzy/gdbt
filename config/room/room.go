@@ -1,4 +1,4 @@
-package channel
+package room
 
 import (
 	"encoding/json"
@@ -113,7 +113,7 @@ type OrganizationInfo struct {
 
 func (u *ConfigJson) Write() error {
 	file, err := os.OpenFile(
-		ChannelJsonPath,
+		RoomJsonPath,
 		os.O_WRONLY|os.O_TRUNC|os.O_CREATE,
 		0774)
 	if err != nil {

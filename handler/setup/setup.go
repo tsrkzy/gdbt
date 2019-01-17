@@ -10,7 +10,7 @@ import (
 	. "github.com/lepra-tsr/gdbt/api/token"
 	. "github.com/lepra-tsr/gdbt/api/user"
 	"github.com/lepra-tsr/gdbt/config"
-	. "github.com/lepra-tsr/gdbt/config/channel"
+	. "github.com/lepra-tsr/gdbt/config/room"
 	. "github.com/lepra-tsr/gdbt/config/credential"
 	authPrompt "github.com/lepra-tsr/gdbt/prompt/auth"
 )
@@ -21,9 +21,9 @@ func Handler() error {
 		return err
 	}
 	/* 開発時にemailとtokenを更新しない場合はここをコメントアウト */
-	// if err := writeCredential(); err != nil {
-	// 	return err
-	// }
+	if err := writeCredential(); err != nil {
+		return err
+	}
 
 	if err := writeChannel(); err != nil {
 		return err

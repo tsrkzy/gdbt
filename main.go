@@ -4,7 +4,7 @@ import (
 	"bufio"
 	"errors"
 	"fmt"
-	"github.com/lepra-tsr/gdbt/handler/channel"
+	"github.com/lepra-tsr/gdbt/handler/room"
 	"github.com/lepra-tsr/gdbt/handler/list"
 	"github.com/lepra-tsr/gdbt/handler/post"
 	"github.com/lepra-tsr/gdbt/handler/setup"
@@ -29,10 +29,10 @@ func main() {
 				fmt.Println(err)
 			}
 
-		case "c":
+		case "r":
 			fallthrough
-		case "channel":
-			if err := channel.Handler(); err != nil {
+		case "room":
+			if err := room.Handler(); err != nil {
 				fmt.Println(err)
 			}
 

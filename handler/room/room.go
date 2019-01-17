@@ -1,8 +1,8 @@
-package channel
+package room
 
 import "fmt"
 
 func Handler() error {
-	fmt.Println("channel handler.")
+	fmt.Println("room handler.")
 	return nil
 }

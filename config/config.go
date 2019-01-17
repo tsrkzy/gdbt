@@ -10,14 +10,14 @@ import (
 const (
 	configFileDirName  = ".gdbt"
 	credentialJsonName = "credential.json"
-	channelJsonName    = "channels.json"
+	roomJsonName    = "rooms.json"
 	draftFileName      = "draft.md"
 )
 
 var (
 	ConfigPath         string
 	CredentialJsonPath string
-	ChannelJsonPath    string
+	RoomJsonPath    string
 	DraftFilePath      string
 )
 
@@ -26,7 +26,7 @@ func init() {
 
 	ConfigPath, _ = filepath.Abs(filepath.Join(user.HomeDir, configFileDirName))
 	CredentialJsonPath, _ = filepath.Abs(filepath.Join(user.HomeDir, configFileDirName, credentialJsonName))
-	ChannelJsonPath, _ = filepath.Abs(filepath.Join(user.HomeDir, configFileDirName, channelJsonName))
+	RoomJsonPath, _ = filepath.Abs(filepath.Join(user.HomeDir, configFileDirName, roomJsonName))
 	DraftFilePath, _ = filepath.Abs(filepath.Join(user.HomeDir, configFileDirName, draftFileName))
 }
 
@@ -47,7 +47,7 @@ func CheckConfigFileState() error {
 		return err
 	}
 
-	if err := OpenOrCreateFileWithWriteMode(ChannelJsonPath); err != nil {
+	if err := OpenOrCreateFileWithWriteMode(RoomJsonPath); err != nil {
 		return err
 	}
 

@@ -57,16 +57,17 @@ type Link struct {
 	Label string
 	Url   string
 	Type  string
+	Index int
 }
 
 func (u *Link) ToString() string {
 	var label string
 	if u.Label == "" {
-		label = u.Type
+		label = "*" + util.IntToStr(u.Index) + " " + u.Type
 	} else {
-		label = u.Type + ": " + u.Label
+		label = "*" + util.IntToStr(u.Index) + " " + u.Type + ": " + u.Label
 	}
-	str := "[" + label + "] - " + u.Url
+	str := label + " - " + u.Url
 	return str
 }
 
@@ -196,12 +197,13 @@ func findImageByPattern(pattern *regexp.Regexp, str string, index int) (string, 
 	url := result[2]
 
 	link := Link{}
-	link.Type = "IMAGE" + util.IntToStr(index)
+	link.Type = "IMAGE"
 	link.Label = label
 	link.Url = url
+	link.Index = index
 
 	/* replace */
-	altText := "[IMAGE" + util.IntToStr(index) + "]"
+	altText := "IMAGE(*" + util.IntToStr(index) + ")"
 	str = strings.Replace(str, matchedText, altText, -1)
 
 	return str, link, len(result)
@@ -231,15 +233,16 @@ func findAnchorByPattern(pattern *regexp.Regexp, str string, index int) (string,
 	url := result[2]
 
 	link := Link{}
-	link.Type = "LINK" + util.IntToStr(index)
+	link.Type = "LINK"
 	link.Label = label
+	link.Index = index
 	if label == url {
 		link.Label = ""
 	}
 	link.Url = url
 
 	/* replace */
-	altText := "[LINK" + util.IntToStr(index) + "]"
+	altText := "LINK(*" + util.IntToStr(index) + ")"
 	str = strings.Replace(str, matchedText, altText, -1)
 
 	return str, link, len(result)

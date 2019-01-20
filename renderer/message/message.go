@@ -3,6 +3,7 @@ package message
 import (
 	"fmt"
 	"regexp"
+	"strings"
 
 	. "github.com/lepra-tsr/gdbt/api/message"
 	"github.com/lepra-tsr/gdbt/util"
@@ -39,8 +40,8 @@ func (u *MessageRenderer) ParseMessageJson(json *MessageJson) {
 		info.LinkList = linkList
 
 		fmt.Println("===")
-		fmt.Println(info.Markdown)
-		fmt.Println("---")
+		// fmt.Println(info.Markdown)
+		// fmt.Println("---")
 		fmt.Println(info.Replaced)
 		fmt.Println("---")
 		for i := 0; i < len(info.LinkList); i++ {
@@ -70,14 +71,8 @@ func (u *Link) ToString() string {
 }
 
 func getLinksFromMarkdown(compressedMarkdown string) (string, []Link) {
-	// ![***](uri)、[***](uri)のパターンでマッチ
-	// [IMAGE n:***]、[LINK n:***]に置換
-	// 以下の行を追加
-	// [type: ***] - uri
-	imageReplaced, inlineImageList := findInlineLink(compressedMarkdown)
-	replaced, inlineLinkList := findInlineLink(imageReplaced)
+	replaced, inlineLinkList := findInlineLink(compressedMarkdown)
 	linkList := []Link{}
-	linkList = append(linkList, inlineImageList...)
 	linkList = append(linkList, inlineLinkList...)
 
 	return replaced, linkList
@@ -119,70 +114,135 @@ func getLinksFromAttachments(imageUrlList []string, fileUrlList []string) []Link
 }
 
 func findInlineLink(markdown string) (string, []Link) {
-	// 変更予定
-	// 画像要素の抽出、置換
-	// ループ開始
-	//   画像要素でパターンマッチし、該当する文字列を取得
-	//   該当する文字列をすべて置換
-
 	linkList := []Link{}
-	urlPattern := `https?:\/\/[a-zA-Z0-9\-\_\.\!\'\(\)\*\;\/\?\:\@\&\=\+\$\%\#\,]+`
 
-	imageWithoutTitlePattern := `(?m)\!\[()image\]\((` + urlPattern + `)\)`
-	reImageWithoutTitle := regexp.MustCompile(imageWithoutTitlePattern)
-	resultImageWithoutTitleList := reImageWithoutTitle.FindAllStringSubmatch(markdown, -1)
-	replaced := reImageWithoutTitle.ReplaceAllString(markdown, "[IMAGE]")
+	loops := 0
+	const LoopLimit = 100
+	str := markdown
+	for loops < LoopLimit {
+		loops++
+		lines := strings.Split(str, "\n")
+		replaced := false
+		finished := false
+		for i := 0; i < len(lines); i++ {
+			line := lines[i]
+			if replacedText, link, hitCount := findImage(line, loops); hitCount != 0 {
+				lines[i] = replacedText
+				str = strings.Join(lines, "\n")
+				linkList = append(linkList, link)
+				replaced = true
+				finished = (len(lines) == (i + 1))
+				break
+			}
 
-	imageWithTitlePattern := `(?m)\!\[([^\]]+)\]\((` + urlPattern + `)\)`
-	reImageWithTitle := regexp.MustCompile(imageWithTitlePattern)
-	resultImageWithTitleList := reImageWithTitle.FindAllStringSubmatch(replaced, -1)
-	replaced = reImageWithTitle.ReplaceAllString(replaced, "[IMAGE: $1]")
+			if replacedText, link, hitCount := findAnchor(line, loops); hitCount != 0 {
+				lines[i] = replacedText
+				str = strings.Join(lines, "\n")
+				linkList = append(linkList, link)
+				replaced = true
+				finished = (len(lines) == (i + 1))
+				break
+			}
 
-	imagePattern := `(?m)\!\[()[^\]]*\]\((` + urlPattern + `)\)`
-	reImage := regexp.MustCompile(imagePattern)
-	resultImageList := reImage.FindAllStringSubmatch(replaced, -1)
-	replaced = reImage.ReplaceAllString(replaced, "[IMAGE]")
+			if replaced {
+				continue
+			}
+		}
 
-	resultImageList = append(resultImageList, resultImageWithoutTitleList...)
-	resultImageList = append(resultImageList, resultImageWithTitleList...)
-	for i := 0; i < len(resultImageList); i++ {
-		result := resultImageList[i]
-		label := result[1]
-		url := result[2]
-		link := Link{}
-		link.Type = "INLINE IMAGE"
-		link.Label = label
-		link.Url = url
-		linkList = append(linkList, link)
+		if finished {
+			break
+		}
 	}
 
-	nastyAnchorPattern := `(?m)\[(` + urlPattern + `)\]\((` + urlPattern + `)\)`
-	reNastyAnchor := regexp.MustCompile(nastyAnchorPattern)
-	resultNastyAnchorList := reNastyAnchor.FindAllStringSubmatch(replaced, -1)
-	replaced = reNastyAnchor.ReplaceAllString(replaced, "[ANCHOR]")
+	// fmt.Println(linkList)
+	return str, linkList
+}
 
+func findImage(str string, index int) (string, Link, int) {
+	urlPattern := `https?:\/\/[a-zA-Z0-9\-\_\.\!\'\*\;\/\?\:\@\&\=\+\$\%\#\,]+`
+	WithoutTitlePattern := `(?m)\!\[()image\]\((` + urlPattern + `)\)`
+	reWithoutTitle := regexp.MustCompile(WithoutTitlePattern)
+
+	WithTitlePattern := `(?m)\!\[([^\]]+)\]\((` + urlPattern + `)\)`
+	reWithTitle := regexp.MustCompile(WithTitlePattern)
+
+	Pattern := `(?m)\!\[()[^\]]*\]\((` + urlPattern + `)\)`
+	re := regexp.MustCompile(Pattern)
+
+	if replacedText, link, hitCount := findImageByPattern(reWithoutTitle, str, index); hitCount != 0 {
+		return replacedText, link, hitCount
+	}
+
+	if replacedText, link, hitCount := findImageByPattern(reWithTitle, str, index); hitCount != 0 {
+		return replacedText, link, hitCount
+	}
+
+	if replacedText, link, hitCount := findImageByPattern(re, str, index); hitCount != 0 {
+		return replacedText, link, hitCount
+	}
+
+	return str, Link{}, 0
+}
+
+func findImageByPattern(pattern *regexp.Regexp, str string, index int) (string, Link, int) {
+	result := pattern.FindStringSubmatch(str)
+	if len(result) == 0 {
+		/* not found */
+		return str, Link{}, 0
+	}
+
+	matchedText := result[0]
+	label := result[1]
+	url := result[2]
+
+	link := Link{}
+	link.Type = "IMAGE" + util.IntToStr(index)
+	link.Label = label
+	link.Url = url
+
+	/* replace */
+	altText := "[IMAGE" + util.IntToStr(index) + "]"
+	str = strings.Replace(str, matchedText, altText, -1)
+
+	return str, link, len(result)
+}
+
+func findAnchor(str string, index int) (string, Link, int) {
+	urlPattern := `https?:\/\/[a-zA-Z0-9\-\_\.\!\'\*\;\/\?\:\@\&\=\+\$\%\#\,]+`
 	anchorPattern := `(?m)\[([^\]]+)\]\((` + urlPattern + `)\)`
 	reAnchor := regexp.MustCompile(anchorPattern)
-	resultAnchorList := reAnchor.FindAllStringSubmatch(replaced, -1)
-	replaced = reAnchor.ReplaceAllString(replaced, "[ANCHOR: $1]")
 
-	resultAnchorList = append(resultAnchorList, resultNastyAnchorList...)
-	for i := 0; i < len(resultAnchorList); i++ {
-		result := resultAnchorList[i]
-		label := result[1]
-		url := result[2]
-
-		if label == url {
-			label = ""
-		}
-		link := Link{}
-		link.Type = "ANCHOR"
-		link.Label = label
-		link.Url = url
-		linkList = append(linkList, link)
+	if replacedText, link, hitCount := findAnchorByPattern(reAnchor, str, index); hitCount != 0 {
+		return replacedText, link, hitCount
 	}
 
-	return replaced, linkList
+	return str, Link{}, 0
+}
+
+func findAnchorByPattern(pattern *regexp.Regexp, str string, index int) (string, Link, int) {
+	result := pattern.FindStringSubmatch(str)
+	if len(result) == 0 {
+		/* not found */
+		return str, Link{}, 0
+	}
+
+	matchedText := result[0]
+	label := result[1]
+	url := result[2]
+
+	link := Link{}
+	link.Type = "LINK" + util.IntToStr(index)
+	link.Label = label
+	if label == url {
+		link.Label = ""
+	}
+	link.Url = url
+
+	/* replace */
+	altText := "[LINK" + util.IntToStr(index) + "]"
+	str = strings.Replace(str, matchedText, altText, -1)
+
+	return str, link, len(result)
 }
 
 func (u *MessageRenderer) Show() {

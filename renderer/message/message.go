@@ -4,11 +4,11 @@ import (
 	"fmt"
 	"regexp"
 	"strings"
+	"time"
 
 	. "github.com/lepra-tsr/gdbt/api/message"
+	"github.com/lepra-tsr/gdbt/config/room"
 	"github.com/lepra-tsr/gdbt/util"
-
-	// "github.com/lepra-tsr/gdbt/util"
 	"github.com/lunny/html2md"
 )
 
@@ -16,8 +16,23 @@ type MessageRenderer struct {
 	Messages []MessageInfo
 }
 
+type MessageInfo struct {
+	Id         int
+	Name       string
+	CreatedAt  string
+	Raw        string
+	Markdown   string
+	Replaced   string
+	Compressed string
+	LinkList   []Link
+}
+
 func compress(markdown string) string {
-	return markdown
+	replaced := markdown
+	replaced = strings.Replace(replaced, "\n\n", "\n", -1)
+	replaced = strings.Replace(replaced, "\n\n\n", "\n\n", -1)
+
+	return replaced
 }
 
 func (u *MessageRenderer) ParseMessageJson(json *MessageJson) {
@@ -33,24 +48,48 @@ func (u *MessageRenderer) ParseMessageJson(json *MessageJson) {
 
 		replacedString, linkList := getLinksFromMarkdown(info.Markdown)
 		info.Replaced = replacedString
+		info.Compressed = compress(info.Replaced)
 
 		attachmentLinkList := getLinksFromAttachments(message.AttachImageUrlList, message.AttachFileUrlList)
 		linkList = append(linkList, attachmentLinkList...)
 
 		info.LinkList = linkList
 
-		fmt.Println("===")
-		// fmt.Println(info.Markdown)
-		// fmt.Println("---")
-		fmt.Println(info.Replaced)
-		fmt.Println("---")
-		for i := 0; i < len(info.LinkList); i++ {
-			linkList := info.LinkList[i]
-			fmt.Println(linkList.ToString())
-		}
-
 		u.Messages = append(u.Messages, info)
 	}
+}
+
+func (u *MessageRenderer) Show() {
+	indentCount := 2
+	indent := ""
+	for i := 0; i < indentCount; i++ {
+		indent = " " + indent
+	}
+	wallText := indent + "| "
+	messages := u.Messages
+	for i := 0; i < len(messages); i++ {
+		message := messages[i]
+		timestamp, err := time.Parse(time.RFC3339, message.CreatedAt)
+		if err != nil {
+			fmt.Println(err)
+		}
+		date := timestamp.Format("Jan 02(Mon) 15:04")
+		fmt.Println("\033[1m" + message.Name + "\033[0m" + " posted at [" + date + "]")
+		lines := strings.Split(message.Compressed, "\n")
+		for i := 0; i < len(lines); i++ {
+			line := lines[i]
+			fmt.Println(wallText + line)
+		}
+		for j := 0; j < len(message.LinkList); j++ {
+			linkList := message.LinkList[j]
+			fmt.Println(wallText + linkList.ToString())
+		}
+	}
+
+	roomConfig := room.RoomConfigJson{}
+	roomConfig.Read()
+	roomName := roomConfig.GetCurrentConnectedName()
+	fmt.Println(indent + "` " + roomName)
 }
 
 type Link struct {
@@ -248,25 +287,6 @@ func findAnchorByPattern(pattern *regexp.Regexp, str string, index int) (string,
 	return str, link, len(result)
 }
 
-func (u *MessageRenderer) Show() {
-	messages := u.Messages
-	for i := 0; i < len(messages); i++ {
-		message := messages[i]
-		message.countRows()
-	}
-}
-
-type MessageInfo struct {
-	Id         int
-	Name       string
-	CreatedAt  string
-	Raw        string
-	Markdown   string
-	Replaced   string
-	Compressed string
-	LinkList   []Link
-}
-
 func (u *MessageInfo) countRows() int {
 	/* 本文の行数 */
 	re := regexp.MustCompile(`(?m)$`)
@@ -276,8 +296,5 @@ func (u *MessageInfo) countRows() int {
 	/* 本文中に挿入したurl */
 	inlineLinkCount := len(u.LinkList)
 
-	// fmt.Println(u.Compressed)
-	// fmt.Println("contentRowCount: " + util.IntToStr(contentRowCount) + ", " + "attachImageCount: " + util.IntToStr(attachImageCount) + ", " + "attachFileCount: " + util.IntToStr(attachFileCount) + ", " + "inlineLinkCount: " + util.IntToStr(inlineLinkCount) + ", ")
-	// fmt.Println("===")
-	return contentRowCount /* + attachImageCount + attachFileCount */ + inlineLinkCount
+	return contentRowCount + inlineLinkCount
 }

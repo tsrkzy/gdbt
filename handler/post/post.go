@@ -70,17 +70,46 @@ func Handler(inputStr string, mode string) error {
 
 func editorHandler(inputStr string) error {
 	fmt.Println(" -> editorHandler.")
+	// テンポラリファイルを作成してvimで開く。
+	// テンプレートを挿入。
+	// 入力があったら追加する。
+	// ファイルを閉じたら、テンポラリファイルを読み出す。
+	// 末尾の改行を取り、コメントを削除。(共通処理？)
+	//   本文が空ならエラー。
+	// 本文を表示し、confirm。
+	// enter ならば送信。
+	//   e ならば再編集
+	//   q ならば破棄して終了。
+	//   dまたはそれ以外ならばドラフトを上書きして終了。
+
 	return nil
 }
 func directPostHandler(inputStr string) error {
 	fmt.Println(" -> directPostHandler.")
+	// 末尾の改行を取り、コメントを削除。(共通処理？)
+	//   本文が空ならエラー。
+	// 本文を表示し、confirm。
+	// enter ならば送信。
+	//   e ならば再編集
+	//   q ならば破棄して終了。
+	//   dまたはそれ以外ならばドラフトを上書きして終了。
 	return nil
 }
 func openDraftHandler(inputStr string) error {
 	fmt.Println(" -> openDraftHandler.")
+	// ドラフトファイルを開く。
+	// vim側で保存/破棄して完結する想定。
 	return nil
 }
 func postDraftHandler(inputStr string) error {
 	fmt.Println(" -> postDraftHandler.")
+	// ドラフトファイルを読み込む。
+	// 末尾の改行を取り、コメントを削除。(共通処理？)
+	//   本文が空ならエラー。
+	// 本文を表示し、confirm。
+	// enter ならば送信。
+	//   e ならば再編集
+	//   q ならば破棄して終了。
+	//   d またはそれ以外ならばドラフトを上書きして終了。
 	return nil
 }

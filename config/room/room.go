@@ -23,6 +23,20 @@ type RoomConfigJson struct {
 	Rooms       []RoomInfo `json:"rooms"`
 }
 
+func (u *RoomConfigJson) Show() {
+	rooms := u.Rooms
+	currentRoomId, _ := u.GetCurrentRoomId()
+	for i := 0; i < len(rooms); i++ {
+		room := rooms[i]
+		id := util.IntToStr(room.Id)
+		if room.Id != currentRoomId {
+			fmt.Println("[" + id + "] " + room.GetConnectedName())
+		} else {
+			fmt.Println("[*" + id + "] " + room.GetConnectedName() + " (current)")
+		}
+	}
+}
+
 func (u *RoomConfigJson) ParseServerEntity(
 	userJson *UserJson,
 	orgJson *OrganizationJson,

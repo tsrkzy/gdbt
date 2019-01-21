@@ -19,24 +19,33 @@ const (
 	PostDraftMode  = "postDraft"
 )
 
-func Handler(inputStr string, mode string) error {
+func Handler(messageOption string, draftFlag bool) error {
 	// fmt.Println("post handler(" + mode + "): " + inputStr)
+
+	mode := EditorMode
+	if messageOption != "" {
+		mode = DirectPostMode
+	} else if draftFlag {
+		mode = PostDraftMode
+	} else {
+		mode = EditorMode
+	}
 
 	switch mode {
 	case EditorMode:
-		if err := editorHandler(inputStr); err != nil {
+		if err := editorHandler(messageOption); err != nil {
 			return err
 		}
 	case DirectPostMode:
-		if err := directPostHandler(inputStr); err != nil {
+		if err := directPostHandler(messageOption); err != nil {
 			return err
 		}
 	case OpenDraftMode:
-		if err := openDraftHandler(inputStr); err != nil {
+		if err := openDraftHandler(messageOption); err != nil {
 			return err
 		}
 	case PostDraftMode:
-		if err := postDraftHandler(inputStr); err != nil {
+		if err := postDraftHandler(messageOption); err != nil {
 			return err
 		}
 	default:

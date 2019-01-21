@@ -4,10 +4,11 @@ import (
 	"bufio"
 	"errors"
 	"fmt"
-	. "github.com/lepra-tsr/gdbt/config/room"
-	"github.com/lepra-tsr/gdbt/util"
 	"os"
 	"strings"
+
+	. "github.com/lepra-tsr/gdbt/config/room"
+	"github.com/lepra-tsr/gdbt/util"
 )
 
 type RoomSelect struct {
@@ -17,11 +18,8 @@ func (u *RoomSelect) Ask(roomConfigJson *RoomConfigJson) error {
 	fmt.Println("\ninput room's [id] and press return.\n")
 
 	rooms := roomConfigJson.Rooms
-	for i := 0; i < len(rooms); i++ {
-		room := rooms[i]
-		id := util.IntToStr(room.Id)
-		fmt.Println("[" + id + "] " + room.GetConnectedName())
-	}
+	roomConfigJson.Show()
+
 	fmt.Println("\nid?")
 	buf := bufio.NewReader(os.Stdin)
 	bytes, err := buf.ReadBytes('\n')

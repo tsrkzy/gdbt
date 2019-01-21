@@ -26,7 +26,7 @@ func Handler() error {
 	}
 
 	fmt.Println("fetching room infomation...")
-	if err := writeRoom(); err != nil {
+	if err := UpdateRoomConfig(); err != nil {
 		return err
 	}
 	fmt.Println("stored your room infomation completely.")
@@ -63,7 +63,7 @@ func writeCredential() error {
 	return nil
 }
 
-func writeRoom() error {
+func UpdateRoomConfig() error {
 
 	userJson := UserJson{}
 	if err := userJson.Fetch(); err != nil {

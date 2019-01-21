@@ -22,7 +22,7 @@ func main() {
 	app.Commands = []cli.Command{
 		{
 			Name:    "init",
-			Aliases: []string{"setup"},
+			Aliases: []string{"setup", "i"},
 			Usage:   "load and store your organization and room information to ~/.gdbt",
 			Action: func(c *cli.Context) error {
 				if err := setup.Handler(); err != nil {
@@ -35,8 +35,14 @@ func main() {
 			Name:    "room",
 			Aliases: []string{"r"},
 			Usage:   "choose current room to where you read/post.",
+			Flags: []cli.Flag{
+				cli.BoolFlag{Name: "reload, r"},
+				cli.BoolFlag{Name: "show, s"},
+			},
 			Action: func(c *cli.Context) error {
-				if err := room.Handler(); err != nil {
+				reloadFlag := c.Bool("reload")
+				showFlag := c.Bool("show")
+				if err := room.Handler(reloadFlag, showFlag); err != nil {
 					return err
 				}
 				return nil
@@ -46,6 +52,9 @@ func main() {
 			Name:    "list",
 			Aliases: []string{"l"},
 			Usage:   "show room messages.",
+			Flags: []cli.Flag{
+				cli.BoolFlag{Name: "union, u"},
+			},
 			Action: func(c *cli.Context) error {
 				if err := list.Handler(); err != nil {
 					return err
@@ -58,39 +67,34 @@ func main() {
 			Aliases: []string{"p"},
 			Usage:   "post message to room.",
 			Flags: []cli.Flag{
-				cli.BoolFlag{Name: "editor, e"},
-				cli.BoolFlag{Name: "post, p"},
-				cli.BoolFlag{Name: "open-draft, o"},
-				cli.BoolFlag{Name: "post-draft, d"},
+				cli.StringFlag{Name: "message, m"},
+				cli.BoolFlag{Name: "draft, d"},
 			},
 			Action: func(c *cli.Context) error {
-				editorFlag := c.Bool("editor")
-				postFlag := c.Bool("post")
-				openDraftFlag := c.Bool("open-draft")
-				postDraftFlag := c.Bool("post-draft")
-				argStr := c.Args().First()
+				messageOption := c.String("message")
+				draftFlag := c.Bool("draft")
 
-				mode := post.EditorMode
-
-				// --editor?
-				// --post? && 引数がある
-				// --open-draft?
-				// --post-draft?
-				if editorFlag {
-					mode = post.EditorMode
-				} else if argStr != "" && postFlag {
-					mode = post.DirectPostMode
-				} else if openDraftFlag {
-					mode = post.OpenDraftMode
-				} else if postDraftFlag {
-					mode = post.PostDraftMode
-				} else {
-					mode = post.EditorMode
-				}
-
-				if err := post.Handler(argStr, mode); err != nil {
+				if err := post.Handler(messageOption, draftFlag); err != nil {
 					return err
 				}
+				return nil
+			},
+		},
+		{
+			Name:    "draft",
+			Aliases: []string{"d"},
+			Usage:   "write draft or post with.",
+			Flags: []cli.Flag{
+				cli.BoolFlag{Name: "show, s"},
+				cli.BoolFlag{Name: "post, p"},
+			},
+			Action: func(c *cli.Context) error {
+				// showFlag := c.Bool("show")
+				// postFlag := c.Bool("post")
+
+				// if err := draft.Handler(, mode); err != nil {
+				// 	return err
+				// }
 				return nil
 			},
 		},

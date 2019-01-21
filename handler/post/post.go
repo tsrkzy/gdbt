@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/lepra-tsr/gdbt/api/message"
+	"github.com/lepra-tsr/gdbt/config/draft"
 	"github.com/lepra-tsr/gdbt/config/room"
 	"github.com/lepra-tsr/gdbt/prompt/confirm"
 	"github.com/lepra-tsr/gdbt/vim"
@@ -115,7 +116,13 @@ func editorHandler(inputStr string) error {
 		return nil
 	case "d":
 		/* overwrite draft. */
-		fmt.Println("do overwrite draft")
+		fmt.Println("... save to draft")
+		draftFile := draft.DraftFile{}
+		draftFile.Body = text
+		if err := draftFile.Write(); err != nil {
+			return err
+		}
+		fmt.Println("saved.")
 		return nil
 	}
 

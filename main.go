@@ -1,11 +1,9 @@
 package main
 
 import (
-	"bufio"
-	"errors"
 	"fmt"
-	"github.com/lepra-tsr/gdbt/handler/room"
 	"github.com/lepra-tsr/gdbt/handler/list"
+	"github.com/lepra-tsr/gdbt/handler/room"
 	"github.com/lepra-tsr/gdbt/handler/post"
 	"github.com/lepra-tsr/gdbt/handler/setup"
 	"github.com/urfave/cli"
@@ -19,50 +17,55 @@ func main() {
 	app.Usage = "idobata unofficial cli tool"
 	app.Version = "0.0.1"
 
-	app.Action = func(context *cli.Context) error {
-
-		switch cmd := context.Args().Get(0); cmd {
-		case "i":
-			fallthrough
-		case "init":
-			if err := setup.Handler(); err != nil {
-				fmt.Println(err)
-			}
-
-		case "r":
-			fallthrough
-		case "room":
-			if err := room.Handler(); err != nil {
-				fmt.Println(err)
-			}
-
-		case "l":
-			fallthrough
-		case "list":
-			if err := list.Handler(); err != nil {
-				fmt.Println(err)
-			}
-
-		case "p":
-			fallthrough
-		case "post":
-			buf := bufio.NewReader(os.Stdin)
-			if sentence, err := buf.ReadBytes('\n'); err != nil {
-				fmt.Println(err)
-			} else {
-				fmt.Println(string(sentence))
-				if err := post.Handler(string(sentence)); err != nil {
-					fmt.Println(err)
+	// app.Flags = []cli.Flag{}
+	app.Commands = []cli.Command{
+		{
+			Name:    "init",
+			Aliases: []string{"setup"},
+			Usage:   "load and store your organization and room information to ~/.gdbt",
+			Action: func(c *cli.Context) error {
+				if err := setup.Handler(); err != nil {
+					return err
 				}
-			}
-		default:
-			fmt.Println("invalid command: " + cmd)
-			return errors.New("invalid command: " + cmd)
-		}
-
-		/* exit correctly */
-		return nil
+				return nil
+			},
+		},
+		{
+			Name:    "room",
+			Aliases: []string{"r"},
+			Usage:   "choose current room to where you read/post.",
+			Action: func(c *cli.Context) error {
+				if err := room.Handler(); err != nil {
+					return err
+				}
+				return nil
+			},
+		},
+		{
+			Name:    "list",
+			Aliases: []string{"l"},
+			Usage:   "show room messages.",
+			Action: func(c *cli.Context) error {
+				if err := list.Handler(); err != nil {
+					return err
+				}
+				return nil
+			},
+		},
+		{
+			Name:    "post",
+			Aliases: []string{"p"},
+			Usage:   "post message to room.",
+			Action: func(c *cli.Context) error {
+				if err := post.Handler(c.Args().First()); err != nil {
+					return err
+				}
+				return nil
+			},
+		},
 	}
-
-	app.Run(os.Args)
+	err := app.Run(os.Args)
+	if err != nil {
+		fmt.Println(err)
+	}
 }

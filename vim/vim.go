@@ -5,6 +5,9 @@ import (
 	"io/ioutil"
 	"os"
 	"os/exec"
+
+	"github.com/lepra-tsr/gdbt/config"
+
 	"path/filepath"
 )
 
@@ -22,23 +25,34 @@ func (u *Vim) OpenTemporaryFile(input string) (string, error) {
 	f.Write(inputBytes)
 	f.Close()
 
-	cmd := exec.Command("vim", tempFilePath)
+	if err := u.open(tempFilePath); err != nil {
+		return "", err
+	}
+	bytes, err := ioutil.ReadFile(tempFilePath)
+	if err != nil {
+		return "", err
+	}
+	return string(bytes), nil
+}
+
+func (u *Vim) open(absPath string) error {
+	cmd := exec.Command("vim", absPath)
 	cmd.Stdin = os.Stdin
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
-	err = cmd.Start()
+	err := cmd.Start()
 	if err != nil {
 		fmt.Println("cannot open temporary file with vim.")
-		return "", err
+		return err
 	}
 	err = cmd.Wait()
 	if err != nil {
-		return "", nil
-	} else {
-		bytes, err := ioutil.ReadFile(tempFilePath)
-		if err != nil {
-			return "", err
-		}
-		return string(bytes), nil
+		return err
 	}
+	return nil
+}
+
+func (u *Vim) OpenDraftFile() error {
+	u.open(config.DraftFilePath)
+	return nil
 }

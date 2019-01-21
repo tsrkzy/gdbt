@@ -2,12 +2,13 @@ package main
 
 import (
 	"fmt"
+	"os"
+
 	"github.com/lepra-tsr/gdbt/handler/list"
 	"github.com/lepra-tsr/gdbt/handler/post"
 	"github.com/lepra-tsr/gdbt/handler/room"
 	"github.com/lepra-tsr/gdbt/handler/setup"
 	"github.com/urfave/cli"
-	"os"
 )
 
 func main() {

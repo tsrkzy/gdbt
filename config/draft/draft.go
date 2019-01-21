@@ -1,9 +1,10 @@
 package draft
 
 import (
-	. "github.com/lepra-tsr/gdbt/config"
 	"io/ioutil"
 	"os"
+
+	. "github.com/lepra-tsr/gdbt/config"
 )
 
 type DraftFile struct {

@@ -3,12 +3,13 @@ package post
 import (
 	"errors"
 	"fmt"
+	"regexp"
+
 	"github.com/lepra-tsr/gdbt/api/message"
 	"github.com/lepra-tsr/gdbt/config/draft"
 	"github.com/lepra-tsr/gdbt/config/room"
-	"github.com/lepra-tsr/gdbt/prompt/confirm"
+	confirmPrompt "github.com/lepra-tsr/gdbt/prompt/confirm"
 	"github.com/lepra-tsr/gdbt/vim"
-	"regexp"
 )
 
 const (
@@ -44,7 +45,19 @@ func Handler(inputStr string, mode string) error {
 
 	return nil
 }
+func getCurrentRoom() (*room.RoomInfo, error) {
+	roomJson := room.RoomConfigJson{}
+	if err := roomJson.Read(); err != nil {
+		return nil, err
+	}
 
+	if roomJson.CurrentRoom == nil {
+		errMsg := "cannot find current room settings. please hit \"$ gdbt room\" to setup."
+		return nil, errors.New(errMsg)
+	}
+
+	return roomJson.CurrentRoom, nil
+}
 func editorHandler(inputStr string) error {
 	// テンポラリファイルを作成してvimで開く。
 	// テンプレートを挿入。
@@ -58,21 +71,9 @@ func editorHandler(inputStr string) error {
 	//   e ならば再編集
 	//   q ならば破棄して終了。
 	//   dまたはそれ以外ならばドラフトを上書きして終了。
-	roomJson := room.RoomConfigJson{}
-	if err := roomJson.Read(); err != nil {
+	roomInfo, err := getCurrentRoom()
+	if err != nil {
 		return err
-	}
-
-	var err error
-	currentRoomId := -1
-	currentConnectedName := ""
-	if roomId, err := roomJson.GetCurrentRoomId(); err != nil {
-		fmt.Println("cannot find current room settings.")
-		fmt.Println("please hit \"$ gdbt room\" to setup.")
-		return err
-	} else {
-		currentRoomId = roomId
-		currentConnectedName = roomJson.GetCurrentConnectedName()
 	}
 
 	vim := vim.Vim{}
@@ -82,6 +83,13 @@ func editorHandler(inputStr string) error {
 	}
 
 	text := clean(tempStr)
+
+	return confirmBeforePost(roomInfo, text)
+}
+
+func confirmBeforePost(roomInfo *room.RoomInfo, text string) error {
+	currentRoomId := roomInfo.Id
+	currentConnectedName := roomInfo.GetConnectedName()
 
 	fmt.Println("- - - - - - - ")
 	fmt.Println(text)
@@ -101,6 +109,9 @@ func editorHandler(inputStr string) error {
 
 	confirm := confirmPrompt.Confirm{}
 	command, err := confirm.AskIn("y,e,q,d")
+	if err != nil {
+		return err
+	}
 
 	switch command {
 	case "y":
@@ -124,9 +135,9 @@ func editorHandler(inputStr string) error {
 		}
 		fmt.Println("saved.")
 		return nil
+	default:
+		return errors.New("invalid subcommand: \"" + command)
 	}
-
-	return nil
 }
 
 func postToRoom(text string, roomId int) error {
@@ -141,7 +152,6 @@ func postToRoom(text string, roomId int) error {
 }
 
 func directPostHandler(inputStr string) error {
-	fmt.Println(" -> directPostHandler.")
 	// 末尾の改行を取り、コメントを削除。(共通処理？)
 	//   本文が空ならエラー。
 	// 本文を表示し、confirm。
@@ -149,16 +159,23 @@ func directPostHandler(inputStr string) error {
 	//   e ならば再編集
 	//   q ならば破棄して終了。
 	//   dまたはそれ以外ならばドラフトを上書きして終了。
-	return nil
+	roomInfo, err := getCurrentRoom()
+	if err != nil {
+		return err
+	}
+
+	text := clean(inputStr)
+
+	return confirmBeforePost(roomInfo, text)
+
 }
 func openDraftHandler(inputStr string) error {
-	fmt.Println(" -> openDraftHandler.")
-	// ドラフトファイルを開く。
-	// vim側で保存/破棄して完結する想定。
+	// ドラフトファイルを開くだけ
+	vim := vim.Vim{}
+	vim.OpenDraftFile()
 	return nil
 }
 func postDraftHandler(inputStr string) error {
-	fmt.Println(" -> postDraftHandler.")
 	// ドラフトファイルを読み込む。
 	// 末尾の改行を取り、コメントを削除。(共通処理？)
 	//   本文が空ならエラー。
@@ -167,7 +184,15 @@ func postDraftHandler(inputStr string) error {
 	//   e ならば再編集
 	//   q ならば破棄して終了。
 	//   d またはそれ以外ならばドラフトを上書きして終了。
-	return nil
+	roomInfo, err := getCurrentRoom()
+	if err != nil {
+		return err
+	}
+	draftFile := draft.DraftFile{}
+	draftFile.Read()
+	inputFromDraft := draftFile.Body
+	text := clean(inputFromDraft)
+	return confirmBeforePost(roomInfo, text)
 }
 
 func clean(str string) string {

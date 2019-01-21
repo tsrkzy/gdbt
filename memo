@@ -1,0 +1,50 @@
+ガイド (init > room > list)
+コメントテンプレート
+
+主要機能:
+
+$gdbt i
+$gdbt init
+$gdbt setup
+  トークンの取得
+  ルームのダウンロード、保存
+
+$gdbt r
+$gdbt room
+  カレントルームの設定
+$gdbt room -r
+$gdbt room --reload
+  ルームのダウンロード、保存
+  カレントルームの設定
+$gdbt room -s
+$gdbt room --show
+  カレントルームの表示
+
+$gdbt list
+  メッセージの表示
+$gdbt list --u
+$gdbt list --union
+  メッセージの表示(@WIP)
+
+投稿:
+
+$gdbt p
+$gdbt post 
+  vimを開いて投稿
+$gdbt post -m <string...>
+$gdbt post --message=<string...>
+  コマンドラインの引数を投稿
+$gdbt post -d
+$gdbt post --draft
+  alias of $gdbt draft --post
+
+
+$gdbt d
+$gdbt draft
+  ドラフトをvimで開く
+$gdbt draft -s
+$gdbt draft --show
+  ドラフトの内容を表示
+$gdbt draft -p
+$gdbt draft --post
+  ドラフトから投稿

@@ -3,11 +3,11 @@ package post
 import (
 	"errors"
 	"fmt"
-	"regexp"
 
 	"github.com/lepra-tsr/gdbt/api/message"
 	"github.com/lepra-tsr/gdbt/config/draft"
 	"github.com/lepra-tsr/gdbt/config/room"
+	"github.com/lepra-tsr/gdbt/handler"
 	confirmPrompt "github.com/lepra-tsr/gdbt/prompt/confirm"
 	"github.com/lepra-tsr/gdbt/vim"
 )
@@ -40,12 +40,8 @@ func Handler(messageOption string, draftFlag bool) error {
 		if err := directPostHandler(messageOption); err != nil {
 			return err
 		}
-	case OpenDraftMode:
-		if err := openDraftHandler(messageOption); err != nil {
-			return err
-		}
 	case PostDraftMode:
-		if err := postDraftHandler(messageOption); err != nil {
+		if err := postDraftHandler(); err != nil {
 			return err
 		}
 	default:
@@ -91,7 +87,7 @@ func editorHandler(inputStr string) error {
 		return err
 	}
 
-	text := clean(tempStr)
+	text := handler.Clean(tempStr)
 
 	return confirmBeforePost(roomInfo, text)
 }
@@ -173,26 +169,13 @@ func directPostHandler(inputStr string) error {
 		return err
 	}
 
-	text := clean(inputStr)
+	text := handler.Clean(inputStr)
 
 	return confirmBeforePost(roomInfo, text)
 
 }
-func openDraftHandler(inputStr string) error {
-	// ドラフトファイルを開くだけ
-	vim := vim.Vim{}
-	vim.OpenDraftFile()
-	return nil
-}
-func postDraftHandler(inputStr string) error {
-	// ドラフトファイルを読み込む。
-	// 末尾の改行を取り、コメントを削除。(共通処理？)
-	//   本文が空ならエラー。
-	// 本文を表示し、confirm。
-	// enter ならば送信。
-	//   e ならば再編集
-	//   q ならば破棄して終了。
-	//   d またはそれ以外ならばドラフトを上書きして終了。
+
+func postDraftHandler() error {
 	roomInfo, err := getCurrentRoom()
 	if err != nil {
 		return err
@@ -200,12 +183,13 @@ func postDraftHandler(inputStr string) error {
 	draftFile := draft.DraftFile{}
 	draftFile.Read()
 	inputFromDraft := draftFile.Body
-	text := clean(inputFromDraft)
+	text := handler.Clean(inputFromDraft)
 	return confirmBeforePost(roomInfo, text)
 }
 
-func clean(str string) string {
-	reTrailEmptyLines := regexp.MustCompile(`(?m)(\s*)*\z`)
-	replaced := reTrailEmptyLines.ReplaceAllString(str, "")
-	return replaced
-}
+// func openDraftHandler(inputStr string) error {
+// 	// ドラフトファイルを開くだけ
+// 	vim := vim.Vim{}
+// 	vim.OpenDraftFile()
+// 	return nil
+// }

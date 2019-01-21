@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/lepra-tsr/gdbt/handler/draft"
 	"github.com/lepra-tsr/gdbt/handler/list"
 	"github.com/lepra-tsr/gdbt/handler/post"
 	"github.com/lepra-tsr/gdbt/handler/room"
@@ -89,12 +90,12 @@ func main() {
 				cli.BoolFlag{Name: "post, p"},
 			},
 			Action: func(c *cli.Context) error {
-				// showFlag := c.Bool("show")
-				// postFlag := c.Bool("post")
+				showFlag := c.Bool("show")
+				postFlag := c.Bool("post")
 
-				// if err := draft.Handler(, mode); err != nil {
-				// 	return err
-				// }
+				if err := draft.Handler(showFlag, postFlag); err != nil {
+					return err
+				}
 				return nil
 			},
 		},

@@ -1,11 +1,11 @@
 package api
 
 import (
+	"bytes"
+	. "github.com/lepra-tsr/gdbt/config/credential"
 	"io/ioutil"
 	"net/http"
 	"strings"
-
-	. "github.com/lepra-tsr/gdbt/config/credential"
 )
 
 type Membership struct {
@@ -76,20 +76,62 @@ type RoomLink struct {
 }
 
 func CallGetWithCredential(path string) ([]byte, error) {
-	credential := CredentialJson{}
-	if err := credential.Read(); err != nil {
+	token, err := getToken()
+	if err != nil {
 		return nil, err
 	}
+	url := normalizePath(path)
+
+	req, _ := http.NewRequest("GET", url, nil)
+	req.Header.Set("X-API-Token", token)
+	req.Header.Set("User-Agent", "idbt")
+
+	client := new(http.Client)
+	res, err := client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer res.Body.Close()
+
+	bytes, err := ioutil.ReadAll(res.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	return bytes, nil
+}
+
+func getToken() (string, error) {
+	credential := CredentialJson{}
+	if err := credential.Read(); err != nil {
+		return "", err
+	}
 	token := credential.Token
+	return token, nil
+}
+
+func normalizePath(path string) string {
 	var url string
 	if strings.Index(path, "http") != -1 {
 		url = path
 	} else {
 		url = "https://idobata.io/api" + path
 	}
-	req, err := http.NewRequest("GET", url, nil)
+
+	return url
+}
+
+func CallPostWithCredential(path string, jsonStr string) ([]byte, error) {
+	token, err := getToken()
+	if err != nil {
+		return nil, err
+	}
+	url := normalizePath(path)
+
+	req, _ := http.NewRequest("POST", url, bytes.NewBuffer([]byte(jsonStr)))
 	req.Header.Set("X-API-Token", token)
 	req.Header.Set("User-Agent", "idbt")
+	req.Header.Set("Content-Type", "application/json")
 
 	client := new(http.Client)
 	res, err := client.Do(req)

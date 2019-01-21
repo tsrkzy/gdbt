@@ -95,6 +95,13 @@ func (u *RoomConfigJson) GetCurrentConnectedName() string {
 	return connectedName
 }
 
+func (u *RoomConfigJson) GetCurrentRoomId() (int, error) {
+	if u.CurrentRoom == nil {
+		return -1, errors.New("err: CurrentRoom is nil.")
+	}
+	return u.CurrentRoom.Id, nil
+}
+
 func (u *RoomConfigJson) SetCurrentById(roomId string) error {
 	rooms := u.Rooms
 	for i := 0; i < len(rooms); i++ {

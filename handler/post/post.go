@@ -3,6 +3,8 @@ package post
 import (
 	"errors"
 	"fmt"
+	"github.com/lepra-tsr/gdbt/api/message"
+	"github.com/lepra-tsr/gdbt/config/room"
 	"github.com/lepra-tsr/gdbt/prompt/confirm"
 	"github.com/lepra-tsr/gdbt/vim"
 	"regexp"
@@ -16,7 +18,7 @@ const (
 )
 
 func Handler(inputStr string, mode string) error {
-	fmt.Println("post handler(" + mode + "): " + inputStr)
+	// fmt.Println("post handler(" + mode + "): " + inputStr)
 
 	switch mode {
 	case EditorMode:
@@ -43,7 +45,6 @@ func Handler(inputStr string, mode string) error {
 }
 
 func editorHandler(inputStr string) error {
-	fmt.Println(" -> editorHandler.")
 	// テンポラリファイルを作成してvimで開く。
 	// テンプレートを挿入。
 	// 入力があったら追加する。
@@ -56,6 +57,23 @@ func editorHandler(inputStr string) error {
 	//   e ならば再編集
 	//   q ならば破棄して終了。
 	//   dまたはそれ以外ならばドラフトを上書きして終了。
+	roomJson := room.RoomConfigJson{}
+	if err := roomJson.Read(); err != nil {
+		return err
+	}
+
+	var err error
+	currentRoomId := -1
+	currentConnectedName := ""
+	if roomId, err := roomJson.GetCurrentRoomId(); err != nil {
+		fmt.Println("cannot find current room settings.")
+		fmt.Println("please hit \"$ gdbt room\" to setup.")
+		return err
+	} else {
+		currentRoomId = roomId
+		currentConnectedName = roomJson.GetCurrentConnectedName()
+	}
+
 	vim := vim.Vim{}
 	tempStr, err := vim.OpenTemporaryFile(inputStr)
 	if err != nil {
@@ -73,7 +91,7 @@ func editorHandler(inputStr string) error {
 		return nil
 	}
 
-	fmt.Println("post this message to room?")
+	fmt.Println("post this message to \"" + currentConnectedName + "\"?")
 	fmt.Println("y: Yes. post it.")
 	fmt.Println("e: Edit(re-open).")
 	fmt.Println("q: Quit. discard all texts.(not save)")
@@ -85,8 +103,10 @@ func editorHandler(inputStr string) error {
 
 	switch command {
 	case "y":
-		/* post */
-		fmt.Println("do post")
+		fmt.Println("")
+		fmt.Println("... posting")
+		postToRoom(text, currentRoomId)
+		fmt.Println("post done.")
 		return nil
 	case "e":
 		return editorHandler(text)
@@ -101,6 +121,18 @@ func editorHandler(inputStr string) error {
 
 	return nil
 }
+
+func postToRoom(text string, roomId int) error {
+	messageJson := message.MessagePostJson{}
+	messageJson.RoomId = roomId
+	messageJson.Source = text
+	messageJson.Format = "markdown"
+	if err := messageJson.Post(); err != nil {
+		return err
+	}
+	return nil
+}
+
 func directPostHandler(inputStr string) error {
 	fmt.Println(" -> directPostHandler.")
 	// 末尾の改行を取り、コメントを削除。(共通処理？)

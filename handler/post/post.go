@@ -3,6 +3,9 @@ package post
 import (
 	"errors"
 	"fmt"
+	"github.com/lepra-tsr/gdbt/prompt/confirm"
+	"github.com/lepra-tsr/gdbt/vim"
+	"regexp"
 )
 
 const (
@@ -36,35 +39,6 @@ func Handler(inputStr string, mode string) error {
 		return errors.New("invalid key.")
 	}
 
-	// // オプションを取得
-	// 	// 何もない場合 → vi起動し、可能なら引数を書き込んだ状態で表示する
-	// 	// !# で始まる行は無視……説明を書く
-
-	// 	// -m 標準入力 引数を使用する
-	// 	// -d または --draft ドラフトファイルを使用
-
-	// 	fpath := os.TempDir() + "/thetemporaryfile.txt"
-	// 	f, err := os.Create(fpath)
-	// 	if err != nil {
-	// 		fmt.Println(err)
-	// 	}
-	// 	f.Close()
-
-	// 	cmd := exec.Command("vi", fpath)
-	// 	cmd.Stdin = os.Stdin
-	// 	cmd.Stdout = os.Stdout
-	// 	cmd.Stderr = os.Stderr
-	// 	err = cmd.Start()
-	// 	if err != nil {
-	// 		fmt.Println(err)
-	// 	}
-	// 	err = cmd.Wait()
-	// 	if err != nil {
-	// 		fmt.Println(err)
-	// 	} else {
-	// 		fmt.Println("Successfully edited.")
-	// 	}
-
 	return nil
 }
 
@@ -73,14 +47,57 @@ func editorHandler(inputStr string) error {
 	// テンポラリファイルを作成してvimで開く。
 	// テンプレートを挿入。
 	// 入力があったら追加する。
-	// ファイルを閉じたら、テンポラリファイルを読み出す。
+	// ファイル保存したら、テンポラリファイルを読み出す。
+	//   保存せずに閉じたら終了。
 	// 末尾の改行を取り、コメントを削除。(共通処理？)
-	//   本文が空ならエラー。
+	//   本文が空なら終了。
 	// 本文を表示し、confirm。
 	// enter ならば送信。
 	//   e ならば再編集
 	//   q ならば破棄して終了。
 	//   dまたはそれ以外ならばドラフトを上書きして終了。
+	vim := vim.Vim{}
+	tempStr, err := vim.OpenTemporaryFile(inputStr)
+	if err != nil {
+		return err
+	}
+
+	text := clean(tempStr)
+
+	fmt.Println("- - - - - - - ")
+	fmt.Println(text)
+	fmt.Println("- - - - - - - ")
+
+	if text == "" {
+		fmt.Println("empty lines.\nabort posting.")
+		return nil
+	}
+
+	fmt.Println("post this message to room?")
+	fmt.Println("y: Yes. post it.")
+	fmt.Println("e: Edit(re-open).")
+	fmt.Println("q: Quit. discard all texts.(not save)")
+	fmt.Println("d: Draft. replace draft file with it.")
+	fmt.Println("(y/e/q/d)?")
+
+	confirm := confirmPrompt.Confirm{}
+	command, err := confirm.AskIn("y,e,q,d")
+
+	switch command {
+	case "y":
+		/* post */
+		fmt.Println("do post")
+		return nil
+	case "e":
+		return editorHandler(text)
+	case "q":
+		fmt.Println("abort.")
+		return nil
+	case "d":
+		/* overwrite draft. */
+		fmt.Println("do overwrite draft")
+		return nil
+	}
 
 	return nil
 }
@@ -112,4 +129,10 @@ func postDraftHandler(inputStr string) error {
 	//   q ならば破棄して終了。
 	//   d またはそれ以外ならばドラフトを上書きして終了。
 	return nil
+}
+
+func clean(str string) string {
+	reTrailEmptyLines := regexp.MustCompile(`(?m)(\s*)*\z`)
+	replaced := reTrailEmptyLines.ReplaceAllString(str, "")
+	return replaced
 }

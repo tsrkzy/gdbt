@@ -10,14 +10,14 @@ import (
 const (
 	configFileDirName  = ".gdbt"
 	credentialJsonName = "credential.json"
-	roomJsonName    = "rooms.json"
+	roomJsonName       = "rooms.json"
 	draftFileName      = "draft.md"
 )
 
 var (
 	ConfigPath         string
 	CredentialJsonPath string
-	RoomJsonPath    string
+	RoomJsonPath       string
 	DraftFilePath      string
 )
 

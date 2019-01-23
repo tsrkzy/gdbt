@@ -43,6 +43,7 @@ func (u *RoomSelect) Ask(roomConfigJson *RoomConfigJson) error {
 		}
 		roomConfigJson.Write()
 		fmt.Println("you're in \"" + roomConfigJson.GetCurrentConnectedName() + "\" now.")
+		fmt.Println("next, hit \"$ gdbt list\" to show messages.")
 		return nil
 	}
 

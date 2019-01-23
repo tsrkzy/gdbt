@@ -86,16 +86,18 @@ func postDraftHandler() error {
 	draftFile := draft.DraftFile{}
 	draftFile.Read()
 	inputFromDraft := draftFile.Body
-	text := handler.Clean(inputFromDraft)
-	return confirmBeforePost(roomInfo, text)
+
+	return confirmBeforePost(roomInfo, inputFromDraft)
 }
 
 func confirmBeforePost(roomInfo *room.RoomInfo, text string) error {
 	currentRoomId := roomInfo.Id
 	currentConnectedName := roomInfo.GetConnectedName()
 
+	cleanedText := handler.Clean(text)
+
 	fmt.Println("- - - - - - - ")
-	fmt.Println(text)
+	fmt.Println(cleanedText)
 	fmt.Println("- - - - - - - ")
 
 	if text == "" {
@@ -120,7 +122,7 @@ func confirmBeforePost(roomInfo *room.RoomInfo, text string) error {
 	case "y":
 		fmt.Println("")
 		fmt.Println("... posting")
-		handler.PostToRoom(text, currentRoomId)
+		handler.PostToRoom(cleanedText, currentRoomId)
 		fmt.Println("post done.")
 		return nil
 	case "e":

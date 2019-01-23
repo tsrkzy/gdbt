@@ -34,3 +34,17 @@ func StripNewLine(val string) string {
 
 	return out
 }
+
+func RemoveTrailEmptyLines(str string) string {
+	reTrailEmptyLines := regexp.MustCompile(`(?m)(\s*)*\z`)
+	replaced := reTrailEmptyLines.ReplaceAllString(str, "")
+
+	return replaced
+}
+
+func RemoveCommentLines(str string) string {
+	reCommentLines := regexp.MustCompile(`(?m)^#\![^\n]*\n`)
+	replaced := reCommentLines.ReplaceAllString(str, "")
+
+	return replaced
+}

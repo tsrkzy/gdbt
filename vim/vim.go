@@ -21,7 +21,9 @@ func (u *Vim) OpenTemporaryFile(input string) (string, error) {
 		fmt.Println("failed to create temporary file: " + tempFilePath)
 		return "", err
 	}
-	inputBytes := []byte(input)
+	commentTemplate := "#! lines start with #! will be ignored.\n#!\n\n"
+
+	inputBytes := []byte(commentTemplate + input)
 	f.Write(inputBytes)
 	f.Close()
 
@@ -36,7 +38,7 @@ func (u *Vim) OpenTemporaryFile(input string) (string, error) {
 }
 
 func (u *Vim) open(absPath string) error {
-	cmd := exec.Command("vim", absPath)
+	cmd := exec.Command("vim", "+", absPath)
 	cmd.Stdin = os.Stdin
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr

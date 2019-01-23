@@ -1,9 +1,8 @@
 package handler
 
 import (
-	"regexp"
-
 	"github.com/lepra-tsr/gdbt/api/message"
+	"github.com/lepra-tsr/gdbt/util"
 )
 
 func PostToRoom(text string, roomId int) error {
@@ -18,7 +17,7 @@ func PostToRoom(text string, roomId int) error {
 }
 
 func Clean(str string) string {
-	reTrailEmptyLines := regexp.MustCompile(`(?m)(\s*)*\z`)
-	replaced := reTrailEmptyLines.ReplaceAllString(str, "")
+	replaced := util.RemoveCommentLines(str)
+	replaced = util.RemoveTrailEmptyLines(replaced)
 	return replaced
 }

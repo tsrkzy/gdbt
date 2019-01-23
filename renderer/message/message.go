@@ -59,6 +59,18 @@ func (u *MessageRenderer) ParseMessageJson(json *MessageJson) {
 	}
 }
 
+func strRFC3339toString(rfc3339str string) (string, error) {
+	timestampUTC, err := time.Parse(time.RFC3339, rfc3339str)
+	if err != nil {
+		return "", err
+	}
+	jst := time.FixedZone("Asia/Tokyo", 9*60*60)
+	timestampJST := timestampUTC.In(jst)
+	date := timestampJST.Format("Jan 02(Mon) 15:04")
+
+	return date, nil
+}
+
 func (u *MessageRenderer) Show() {
 	indentCount := 2
 	indent := ""
@@ -69,11 +81,10 @@ func (u *MessageRenderer) Show() {
 	messages := u.Messages
 	for i := 0; i < len(messages); i++ {
 		message := messages[i]
-		timestamp, err := time.Parse(time.RFC3339, message.CreatedAt)
+		date, err := strRFC3339toString(message.CreatedAt)
 		if err != nil {
 			fmt.Println(err)
 		}
-		date := timestamp.Format("Jan 02(Mon) 15:04")
 		fmt.Println("\033[1m" + message.Name + "\033[0m" + " posted at [" + date + "]")
 		lines := strings.Split(message.Compressed, "\n")
 		for i := 0; i < len(lines); i++ {

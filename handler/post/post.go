@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/lepra-tsr/gdbt/api/message"
 	"github.com/lepra-tsr/gdbt/config/draft"
 	"github.com/lepra-tsr/gdbt/config/room"
 	"github.com/lepra-tsr/gdbt/handler"
@@ -64,18 +63,6 @@ func getCurrentRoom() (*room.RoomInfo, error) {
 	return roomJson.CurrentRoom, nil
 }
 func editorHandler(inputStr string) error {
-	// テンポラリファイルを作成してvimで開く。
-	// テンプレートを挿入。
-	// 入力があったら追加する。
-	// ファイル保存したら、テンポラリファイルを読み出す。
-	//   保存せずに閉じたら終了。
-	// 末尾の改行を取り、コメントを削除。(共通処理？)
-	//   本文が空なら終了。
-	// 本文を表示し、confirm。
-	// enter ならば送信。
-	//   e ならば再編集
-	//   q ならば破棄して終了。
-	//   dまたはそれ以外ならばドラフトを上書きして終了。
 	roomInfo, err := getCurrentRoom()
 	if err != nil {
 		return err
@@ -87,17 +74,17 @@ func editorHandler(inputStr string) error {
 		return err
 	}
 
-	text := handler.Clean(tempStr)
-
-	return confirmBeforePost(roomInfo, text)
+	return confirmBeforePost(roomInfo, tempStr)
 }
 
 func confirmBeforePost(roomInfo *room.RoomInfo, text string) error {
 	currentRoomId := roomInfo.Id
 	currentConnectedName := roomInfo.GetConnectedName()
 
+	cleanedText := handler.Clean(text)
+
 	fmt.Println("- - - - - - - ")
-	fmt.Println(text)
+	fmt.Println(cleanedText)
 	fmt.Println("- - - - - - - ")
 
 	if text == "" {
@@ -122,7 +109,7 @@ func confirmBeforePost(roomInfo *room.RoomInfo, text string) error {
 	case "y":
 		fmt.Println("")
 		fmt.Println("... posting")
-		postToRoom(text, currentRoomId)
+		handler.PostToRoom(cleanedText, currentRoomId)
 		fmt.Println("post done.")
 		return nil
 	case "e":
@@ -145,33 +132,13 @@ func confirmBeforePost(roomInfo *room.RoomInfo, text string) error {
 	}
 }
 
-func postToRoom(text string, roomId int) error {
-	messageJson := message.MessagePostJson{}
-	messageJson.RoomId = roomId
-	messageJson.Source = text
-	messageJson.Format = "markdown"
-	if err := messageJson.Post(); err != nil {
-		return err
-	}
-	return nil
-}
-
 func directPostHandler(inputStr string) error {
-	// 末尾の改行を取り、コメントを削除。(共通処理？)
-	//   本文が空ならエラー。
-	// 本文を表示し、confirm。
-	// enter ならば送信。
-	//   e ならば再編集
-	//   q ならば破棄して終了。
-	//   dまたはそれ以外ならばドラフトを上書きして終了。
 	roomInfo, err := getCurrentRoom()
 	if err != nil {
 		return err
 	}
 
-	text := handler.Clean(inputStr)
-
-	return confirmBeforePost(roomInfo, text)
+	return confirmBeforePost(roomInfo, inputStr)
 
 }
 
@@ -183,13 +150,6 @@ func postDraftHandler() error {
 	draftFile := draft.DraftFile{}
 	draftFile.Read()
 	inputFromDraft := draftFile.Body
-	text := handler.Clean(inputFromDraft)
-	return confirmBeforePost(roomInfo, text)
-}
 
-// func openDraftHandler(inputStr string) error {
-// 	// ドラフトファイルを開くだけ
-// 	vim := vim.Vim{}
-// 	vim.OpenDraftFile()
-// 	return nil
-// }
+	return confirmBeforePost(roomInfo, inputFromDraft)
+}

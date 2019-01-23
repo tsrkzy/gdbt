@@ -28,7 +28,7 @@ func (u *RoomConfigJson) Show() {
 	currentRoomId, _ := u.GetCurrentRoomId()
 	for i := 0; i < len(rooms); i++ {
 		room := rooms[i]
-		id := util.IntToStr(room.Id)
+		id := util.IntToStr(i)
 		if room.Id != currentRoomId {
 			fmt.Println("[" + id + "] " + room.GetConnectedName())
 		} else {
@@ -116,18 +116,18 @@ func (u *RoomConfigJson) GetCurrentRoomId() (int, error) {
 	return u.CurrentRoom.Id, nil
 }
 
-func (u *RoomConfigJson) SetCurrentById(roomId string) error {
+func (u *RoomConfigJson) SetCurrentById(roomId int) error {
 	rooms := u.Rooms
 	for i := 0; i < len(rooms); i++ {
 		room := rooms[i]
-		id := util.IntToStr(room.Id)
+		id := room.Id
 		if id != roomId {
 			continue
 		}
 		u.CurrentRoom = &u.Rooms[i]
 		return nil
 	}
-	return errors.New("room with id=" + roomId + " has not found.")
+	return errors.New("room with id=" + util.IntToStr(roomId) + " has not found.")
 }
 
 type RoomInfo struct {

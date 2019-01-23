@@ -5,10 +5,10 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"strconv"
 	"strings"
 
 	. "github.com/lepra-tsr/gdbt/config/room"
-	"github.com/lepra-tsr/gdbt/util"
 )
 
 type RoomSelect struct {
@@ -27,25 +27,24 @@ func (u *RoomSelect) Ask(roomConfigJson *RoomConfigJson) error {
 		return err
 	}
 
-	newRoomId := strings.TrimSpace(string(bytes))
-	if newRoomId == "" {
+	newRoomIndexStr := strings.TrimSpace(string(bytes))
+	if newRoomIndexStr == "" {
 		return nil
 	}
-
-	for i := 0; i < len(rooms); i++ {
-		room := rooms[i]
-		id := util.IntToStr(room.Id)
-		if id != newRoomId {
-			continue
-		}
-		if err := roomConfigJson.SetCurrentById(newRoomId); err != nil {
-			return err
-		}
-		roomConfigJson.Write()
-		fmt.Println("you're in \"" + roomConfigJson.GetCurrentConnectedName() + "\" now.")
-		fmt.Println("next, hit \"$ gdbt list\" to show messages.")
-		return nil
+	newRoomIndex, err := strconv.Atoi(newRoomIndexStr)
+	if err != nil {
+		return err
 	}
 
-	return errors.New("invalid room id:" + newRoomId)
+	room := rooms[newRoomIndex]
+	newRoomId := room.Id
+	if err := roomConfigJson.SetCurrentById(newRoomId); err != nil {
+		return err
+	}
+	roomConfigJson.Write()
+	fmt.Println("you're in \"" + roomConfigJson.GetCurrentConnectedName() + "\" now.")
+	fmt.Println("next, hit \"$ gdbt list\" to show messages.")
+	return nil
+
+	return errors.New("invalid room id:" + newRoomIndexStr)
 }

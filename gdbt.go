@@ -15,16 +15,15 @@ import (
 func main() {
 	app := cli.NewApp()
 
-	app.Name = "gdbtApp"
+	app.Name = "gdbt"
 	app.Usage = "idobata unofficial cli tool"
-	app.Version = "0.0.1"
+	app.Version = "1.0.0"
 
-	// app.Flags = []cli.Flag{}
 	app.Commands = []cli.Command{
 		{
 			Name:    "init",
 			Aliases: []string{"setup", "i"},
-			Usage:   "load and store your organization and room information to ~/.gdbt",
+			Usage:   "load your room information.",
 			Action: func(c *cli.Context) error {
 				if err := setup.Handler(); err != nil {
 					return err
@@ -35,10 +34,16 @@ func main() {
 		{
 			Name:    "room",
 			Aliases: []string{"r"},
-			Usage:   "choose current room to where you read/post.",
+			Usage:   "select room.",
 			Flags: []cli.Flag{
-				cli.BoolFlag{Name: "reload, r"},
-				cli.BoolFlag{Name: "show, s"},
+				cli.BoolFlag{
+					Name:  "reload, r",
+					Usage: "update room information.",
+				},
+				cli.BoolFlag{
+					Name:  "show, s",
+					Usage: "show room information.",
+				},
 			},
 			Action: func(c *cli.Context) error {
 				reloadFlag := c.Bool("reload")
@@ -52,10 +57,10 @@ func main() {
 		{
 			Name:    "list",
 			Aliases: []string{"l"},
-			Usage:   "show room messages.",
-			Flags: []cli.Flag{
-				cli.BoolFlag{Name: "union, u"},
-			},
+			Usage:   "show timeline.",
+			// Flags: []cli.Flag{
+			// 	cli.BoolFlag{Name: "union, u"},
+			// },
 			Action: func(c *cli.Context) error {
 				if err := list.Handler(); err != nil {
 					return err
@@ -66,10 +71,16 @@ func main() {
 		{
 			Name:    "post",
 			Aliases: []string{"p"},
-			Usage:   "post message to room.",
+			Usage:   "post message.",
 			Flags: []cli.Flag{
-				cli.StringFlag{Name: "message, m"},
-				cli.BoolFlag{Name: "draft, d"},
+				cli.StringFlag{
+					Name:  "message, m",
+					Usage: "post message.",
+				},
+				cli.BoolFlag{
+					Name:  "draft, d",
+					Usage: "post with draft file.",
+				},
 			},
 			Action: func(c *cli.Context) error {
 				messageOption := c.String("message")
@@ -84,10 +95,16 @@ func main() {
 		{
 			Name:    "draft",
 			Aliases: []string{"d"},
-			Usage:   "write draft or post with.",
+			Usage:   "write draft.",
 			Flags: []cli.Flag{
-				cli.BoolFlag{Name: "show, s"},
-				cli.BoolFlag{Name: "post, p"},
+				cli.BoolFlag{
+					Name:  "show, s",
+					Usage: "show draft file.",
+				},
+				cli.BoolFlag{
+					Name:  "post, p",
+					Usage: "post with draft file.",
+				},
 			},
 			Action: func(c *cli.Context) error {
 				showFlag := c.Bool("show")

@@ -20,6 +20,7 @@ do
         echo "compile "${GOOS}"("${GOARCH}")"
         cd ${GODIST}
         env GOOS=${GOOS} GOARCH=${GOARCH} go build -v ${SRC_PATH}/gdbt.go
+        zip gdbt_${GOOS}_${GOARCH}.zip ./*
         cd ${SRC_PATH}
     done
 done

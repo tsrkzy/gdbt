@@ -244,6 +244,9 @@ func findImageByPattern(pattern *regexp.Regexp, str string, index int) (string, 
 
 	matchedText := result[0]
 	label := result[1]
+	if label == "" {
+		label = "IMAGE"
+	}
 	url := result[2]
 
 	link := Link{}
@@ -253,7 +256,7 @@ func findImageByPattern(pattern *regexp.Regexp, str string, index int) (string, 
 	link.Index = index
 
 	/* replace */
-	altText := "IMAGE(*" + util.IntToStr(index) + ")"
+	altText := "![" + label + "](*" + util.IntToStr(index) + ")"
 	str = strings.Replace(str, matchedText, altText, -1)
 
 	return str, link, len(result)
@@ -287,12 +290,12 @@ func findAnchorByPattern(pattern *regexp.Regexp, str string, index int) (string,
 	link.Label = label
 	link.Index = index
 	if label == url {
-		link.Label = ""
+		link.Label = "link"
 	}
 	link.Url = url
 
 	/* replace */
-	altText := "LINK(*" + util.IntToStr(index) + ")"
+	altText := "[" + link.Label + "](*" + util.IntToStr(index) + ")"
 	str = strings.Replace(str, matchedText, altText, -1)
 
 	return str, link, len(result)

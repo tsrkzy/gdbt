@@ -126,7 +126,10 @@ func confirmBeforePost(roomInfo *room.RoomInfo, text string) error {
 		fmt.Println("post done.")
 		return nil
 	case "e":
-		return editorHandler()
+		if err := editorHandler(); err != nil {
+			return err
+		}
+		return postDraftHandler()
 	case "q":
 		fmt.Println("abort.")
 		return nil

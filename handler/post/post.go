@@ -83,6 +83,10 @@ func confirmBeforePost(roomInfo *room.RoomInfo, text string) error {
 
 	cleanedText := handler.Clean(text)
 
+	if cleanedText == "" {
+		return nil
+	}
+
 	fmt.Println("- - - - - - - ")
 	fmt.Println(cleanedText)
 	fmt.Println("- - - - - - - ")

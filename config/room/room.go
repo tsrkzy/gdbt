@@ -37,6 +37,18 @@ func (u *RoomConfigJson) Show() {
 	}
 }
 
+func (u *RoomConfigJson) GetConnectedNameById(roomId int) string {
+	rooms := u.Rooms
+	for i := 0; i < len(rooms); i++ {
+		r := rooms[i]
+		if roomId != r.Id {
+			continue
+		}
+		return r.GetConnectedName()
+	}
+	return "NO ROOM FOUND"
+}
+
 func (u *RoomConfigJson) ParseServerEntity(
 	userJson *UserJson,
 	orgJson *OrganizationJson,

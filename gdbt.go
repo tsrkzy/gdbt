@@ -58,11 +58,15 @@ func main() {
 			Name:    "list",
 			Aliases: []string{"l"},
 			Usage:   "show timeline.",
-			// Flags: []cli.Flag{
-			// 	cli.BoolFlag{Name: "union, u"},
-			// },
+			Flags: []cli.Flag{
+				cli.BoolFlag{
+					Name: "union, u",
+					Usage:"show union(mixed) timeline",
+				},
+			},
 			Action: func(c *cli.Context) error {
-				if err := list.Handler(); err != nil {
+				unionFlag := c.Bool("union")
+				if err := list.Handler(unionFlag); err != nil {
 					return err
 				}
 				return nil

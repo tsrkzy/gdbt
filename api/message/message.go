@@ -3,6 +3,7 @@ package message
 import (
 	"encoding/json"
 	"fmt"
+
 	"github.com/lepra-tsr/gdbt/api"
 	"github.com/lepra-tsr/gdbt/config/room"
 )
@@ -30,7 +31,10 @@ type Meta struct {
 }
 
 func (u *MessageJson) Fetch(currentRoom *room.RoomInfo) error {
-	messageUrl := currentRoom.MessageUrl
+	messageUrl := "/messages"
+	if currentRoom != nil {
+		messageUrl = currentRoom.MessageUrl
+	}
 	bytes, err := api.CallGetWithCredential(messageUrl)
 	if err != nil {
 		return err

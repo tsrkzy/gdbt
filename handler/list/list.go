@@ -8,7 +8,15 @@ import (
 	. "github.com/lepra-tsr/gdbt/renderer/message"
 )
 
-func Handler() error {
+func Handler(unionFlag bool) error {
+	if unionFlag {
+		return unionHandler()
+	} else {
+		return currentHandler()
+	}
+}
+
+func currentHandler() error {
 	roomConfigJson := RoomConfigJson{}
 	roomConfigJson.Read()
 	currentRoom := roomConfigJson.CurrentRoom
@@ -27,7 +35,22 @@ func Handler() error {
 	messageRenderer.ParseMessageJson(&messageJson)
 
 	// fmt.Println(messageRenderer)
-	messageRenderer.Show()
+	messageRenderer.Show("current")
+
+	return nil
+}
+
+func unionHandler() error {
+	messageJson := message.MessageJson{}
+	err := messageJson.Fetch(nil)
+	if err != nil {
+		return err
+	}
+
+	messageRenderer := MessageRenderer{}
+	messageRenderer.ParseMessageJson(&messageJson)
+
+	messageRenderer.Show("union")
 
 	return nil
 }

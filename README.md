@@ -37,6 +37,8 @@ $ gdbt room -s # shorthand
 # list
 $ gdbt list
 $ gdbt l # shorthand
+$ gdbt list --union
+$ gdbt l -u # shorthand
 
 # gdbt post
 $ gdbt p # shorthand

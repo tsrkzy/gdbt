@@ -18,6 +18,8 @@ type MessageRenderer struct {
 
 type MessageInfo struct {
 	Id         int
+	RoomId     int
+	RoomName   string
 	Name       string
 	CreatedAt  string
 	Raw        string
@@ -36,11 +38,15 @@ func compress(markdown string) string {
 }
 
 func (u *MessageRenderer) ParseMessageJson(json *MessageJson) {
+	roomConfigJson := room.RoomConfigJson{}
+	roomConfigJson.Read()
 	messages := json.Messages
 	for i := 0; i < len(messages); i++ {
 		info := MessageInfo{}
 		message := messages[i]
 		info.Id = message.Id
+		info.RoomId = message.RoomId
+		info.RoomName = roomConfigJson.GetConnectedNameById(message.RoomId)
 		info.Name = message.SenderName
 		info.CreatedAt = message.CreatedAt
 		info.Raw = message.Body
@@ -71,7 +77,8 @@ func strRFC3339toString(rfc3339str string) (string, error) {
 	return date, nil
 }
 
-func (u *MessageRenderer) Show() {
+func (u *MessageRenderer) Show(target string) {
+	unionFlag := target == "union"
 	indentCount := 2
 	indent := ""
 	for i := 0; i < indentCount; i++ {
@@ -85,7 +92,13 @@ func (u *MessageRenderer) Show() {
 		if err != nil {
 			fmt.Println(err)
 		}
-		fmt.Println("\033[1m" + message.Name + "\033[0m" + " posted at [" + date + "]")
+		senderText := "\033[1m" + message.Name + "\033[0m" + " posted"
+		dateText := " at [" + date + "]"
+		channelText := ""
+		if unionFlag {
+			channelText = " to (\033[1m" + message.RoomName + "\033[0m)"
+		}
+		fmt.Println(senderText + channelText + dateText)
 		lines := strings.Split(message.Compressed, "\n")
 		for i := 0; i < len(lines); i++ {
 			line := lines[i]
@@ -100,7 +113,11 @@ func (u *MessageRenderer) Show() {
 	roomConfig := room.RoomConfigJson{}
 	roomConfig.Read()
 	roomName := roomConfig.GetCurrentConnectedName()
-	fmt.Println(indent + "` " + roomName)
+	if unionFlag {
+		fmt.Println(indent + "`- union timeline")
+	}else{
+		fmt.Println(indent + "`- " + roomName)
+	}
 }
 
 type Link struct {

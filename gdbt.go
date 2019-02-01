@@ -17,7 +17,7 @@ func main() {
 
 	app.Name = "gdbt"
 	app.Usage = "idobata unofficial cli tool"
-	app.Version = "1.0.0"
+	app.Version = "1.1.0"
 
 	app.Commands = []cli.Command{
 		{

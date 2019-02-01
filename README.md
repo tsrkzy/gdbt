@@ -7,7 +7,7 @@
 ### インストール
 
 実行形式ファイルで配布(予定)。   
-OSに対応した実行形式ファイルを[ダウンロードページ](https://lepra-tsr.github.io/gdbt/download)から取得し、`$PATH` の通ったところに配置する。
+OSに対応した実行形式ファイルを[ダウンロードページ](https://github.com/lepra-tsr/gdbt/releases)から取得し、`$PATH` の通ったところに配置する。
 
 #### アンインストール
 

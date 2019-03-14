@@ -9,6 +9,8 @@ import (
 	"github.com/lepra-tsr/gdbt/handler/post"
 	"github.com/lepra-tsr/gdbt/handler/room"
 	"github.com/lepra-tsr/gdbt/handler/setup"
+	"github.com/lepra-tsr/gdbt/handler/touch"
+	"github.com/lepra-tsr/gdbt/handler/user"
 	"github.com/urfave/cli"
 )
 
@@ -21,11 +23,33 @@ func main() {
 
 	app.Commands = []cli.Command{
 		{
+			Name:    "users",
+			Aliases: []string{"u"},
+			Usage:   "load user information",
+			Action: func(c *cli.Context) error {
+				if err := user.Handler(); err != nil {
+					return err
+				}
+				return nil
+			},
+		},
+		{
 			Name:    "init",
 			Aliases: []string{"setup", "i"},
 			Usage:   "load your room information.",
 			Action: func(c *cli.Context) error {
 				if err := setup.Handler(); err != nil {
+					return err
+				}
+				return nil
+			},
+		},
+		{
+			Name:    "touch",
+			Aliases: []string{"t"},
+			Usage:   "mark all room messages as \"Read\".",
+			Action: func(c *cli.Context) error {
+				if err := touch.Handler(); err != nil {
 					return err
 				}
 				return nil
@@ -58,9 +82,12 @@ func main() {
 			Name:    "list",
 			Aliases: []string{"l"},
 			Usage:   "show timeline.",
-			// Flags: []cli.Flag{
-			// 	cli.BoolFlag{Name: "union, u"},
-			// },
+			Flags: []cli.Flag{
+				cli.BoolFlag{
+					Name:  "union, u",
+					Usage: "show union(mixed) timeline",
+				},
+			},
 			Action: func(c *cli.Context) error {
 				if err := list.Handler(); err != nil {
 					return err

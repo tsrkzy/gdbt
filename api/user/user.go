@@ -2,6 +2,7 @@ package user
 
 import (
 	"encoding/json"
+	"fmt"
 
 	"github.com/lepra-tsr/gdbt/api"
 )
@@ -22,6 +23,15 @@ func (u *UserJson) Fetch() error {
 
 	if err := json.Unmarshal(bytes, &u); err != nil {
 		return err
+	}
+
+	return nil
+}
+
+func (u *UserJson) Show() error {
+	for i := 0; i < len(u.Users); i++ {
+		user := u.Users[i]
+		fmt.Println(user.Name, user.IconUrl)
 	}
 
 	return nil

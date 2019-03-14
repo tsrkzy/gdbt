@@ -29,9 +29,12 @@ func (u *RoomConfigJson) Show() {
 	for i := 0; i < len(rooms); i++ {
 		room := rooms[i]
 		id := util.IntToStr(i)
+		// joinId := util.IntToStr(room.JoinId)
 		if room.Id != currentRoomId {
+			// fmt.Println("[" + id + "(" + joinId + ")] " + room.GetConnectedName())
 			fmt.Println("[" + id + "] " + room.GetConnectedName())
 		} else {
+			// fmt.Println("[*" + id + "(" + joinId + ")] " + room.GetConnectedName() + " (current)")
 			fmt.Println("[*" + id + "] " + room.GetConnectedName() + " (current)")
 		}
 	}
@@ -85,6 +88,7 @@ func (u *RoomConfigJson) ParseServerEntity(
 						}
 						roomInfo := RoomInfo{}
 						roomInfo.ParseRoomOrganization(&room, &org)
+						roomInfo.JoinId = joinId
 						u.Rooms = append(u.Rooms, roomInfo)
 						joinedToRoom = true
 						break
@@ -135,6 +139,7 @@ type RoomInfo struct {
 	Name         string            `json:"name"`
 	MessageUrl   string            `json:"messageUrl"`
 	Organization *OrganizationInfo `json:"organization"`
+	JoinId       int               `json:joinId`
 }
 
 func (u *RoomInfo) GetConnectedName() string {
@@ -187,5 +192,23 @@ func (u *RoomConfigJson) Read() error {
 		fmt.Println("Failed to parse room.json")
 		return err
 	}
+	return nil
+}
+
+func (u *RoomConfigJson) Touch() error {
+	roomList := u.Rooms
+	for i := 0; i < len(roomList); i++ {
+		room := roomList[i]
+		joinId := util.IntToStr(room.JoinId)
+		url := "/joins/" + joinId + "/touch"
+		_, err := CallPostWithCredential(url, "{}")
+		if err != nil {
+			return err
+		}
+		fmt.Println("touched: " + room.GetConnectedName())
+	}
+
+	fmt.Println("done.")
+
 	return nil
 }
